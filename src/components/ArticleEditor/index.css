@@ -1,0 +1,19 @@
+.public-DraftEditorPlaceholder-root{
+  color: #999;
+  position: absolute; 
+  pointer-events: none; 
+}
+
+.superFancyBlockquote {
+  color: #999;
+  font-family: 'Hoefler Text', Georgia, serif;
+  font-style: italic;
+  text-align: center;
+}
+
+.superFancyBlockquote:hover {
+  color: #666;
+}
+
+.superFancyUnstyled{
+}
