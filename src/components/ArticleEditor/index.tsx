@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   ContentBlock,
+  ContentState,
+  convertFromRaw,
+  convertToRaw,
   DraftEditorCommand, Editor, EditorState, RichUtils,
 } from 'draft-js'
 import {
@@ -14,9 +17,14 @@ import FormatUnderlined from '@mui/icons-material/FormatUnderlined'
 import Code from '@mui/icons-material/Code'
 
 import './index.css'
+import { useTranslation } from 'react-i18next'
 
 function ArticleEditor() {
-  const [state, setState] = useState({ editorState: EditorState.createEmpty() })
+  const { t } = useTranslation()
+  const [state, setState] = useState({
+    editorState:
+    EditorState.createEmpty(),
+  })
   const editorContainer = useRef<HTMLDivElement>(null)
   const selectionChangeTimer = useRef<number>(0)
   const [count, setCount] = useState(0)
@@ -28,33 +36,74 @@ function ArticleEditor() {
 
   const [floatVisible, setFloatVisible] = useState(false)
 
+  useEffect(() => {
+    const savedState = localStorage.getItem('editorState')
+    let newState = EditorState.createEmpty()
+    // EditorState.createWithContent(
+    //   ContentState.createFromText(
+    //     'Hello, world!',
+    //   ),
+    // )
+    if (savedState) {
+      newState = EditorState.createWithContent(
+        // ContentState.createFromText(
+        //   'Hello, world!',
+        // ),
+        new ContentState(
+          convertFromRaw(
+            JSON.parse(
+              savedState,
+            ),
+          ),
+
+        ),
+      )
+    }
+
+    setState({
+      editorState: newState,
+    })
+  }, [])
+
   const onSelectionChanged = (editorState: EditorState) => {
     const anchorNode = document.getSelection()?.anchorNode
     if (anchorNode && editorContainer.current?.contains(anchorNode)) {
-      let rect = document?.getSelection()?.getRangeAt(0)?.getBoundingClientRect() ?? {
+      const rect:{
+        top: number,
+        left: number,
+        width: number,
+        height: number,
+      } = document?.getSelection()?.getRangeAt(0)?.getBoundingClientRect() ?? {
         top: 0,
         left: 0,
-        // width: 0,
-        // height: 0,
+        width: 0,
+        height: 0,
       }
       // downgrade to dom position
-      if (rect.top === 0 && rect.left === 0) {
-        const selectionElement: HTMLSpanElement | null = anchorNode?.nodeType === 3
-          ? anchorNode.parentElement as HTMLSpanElement | null
-          : anchorNode as HTMLSpanElement | null
+      // if (rect.top === 0 && rect.left === 0) {
+      //   const selectionElement: HTMLSpanElement | null = anchorNode?.nodeType === 3
+      //     ? anchorNode.parentElement as HTMLSpanElement | null
+      //     : anchorNode as HTMLSpanElement | null
 
-        if (selectionElement) {
-          rect = {
-            left: selectionElement.offsetLeft,
-            top: selectionElement.offsetTop,
-            // width: selectionElement.offsetWidth,
-            // height: selectionElement.offsetHeight,
-          }
-        }
+      //   if (selectionElement) {
+      //     rect = {
+      //       left: selectionElement.offsetLeft,
+      //       top: selectionElement.offsetTop,
+      //       // width: selectionElement.offsetWidth,
+      //       // height: selectionElement.offsetHeight,
+      //     }
+      //   }
+      // }
+      // const selection = editorState.getSelection()
+      // setFloatVisible(!(selection.getStartOffset() === selection.getEndOffset()))
+      if (rect.width < 0.1) {
+        setFloatVisible(false)
+      } else {
+        setFloatVisible(true)
       }
-      const selection = editorState.getSelection()
-      setFloatVisible(!(selection.getStartOffset() === selection.getEndOffset()))
+
       setFloatPosition(rect)
+      // console.log(rect)
     }
   }
 
@@ -70,13 +119,15 @@ function ArticleEditor() {
 
     selectionChangeTimer.current = setTimeout(() => {
       onSelectionChanged(editorState)
-      setCount(count - 1)
-    }, 50)
+      setCount(0)
+    }, 10)
   }
 
   const onChange = (editorState: EditorState) => {
     setState({ editorState })
     debouncedOnSelectionChanged(editorState)
+
+    localStorage.setItem('editorState', JSON.stringify(convertToRaw(editorState.getCurrentContent())))
   }
   const handleKeyCommand = (command: DraftEditorCommand) => {
     const newState = RichUtils.handleKeyCommand(state.editorState, command)
@@ -102,27 +153,31 @@ function ArticleEditor() {
     onChange(RichUtils.toggleBlockType(state.editorState, 'code-block'))
   }
 
+  const onBlur = () => {
+    setFloatVisible(false)
+  }
+
   const myBlockStyleFn = (contentBlock: ContentBlock):string => {
     const type = contentBlock.getType()
     if (type === 'blockquote') {
-      return 'superFancyBlockquote'
+      return 'knBlogBlockquote'
     }
     if (type === 'unstyled') {
-      return 'superFancyUnstyled'
+      return 'knBlogUnstyled'
     }
     return type
   }
 
   return (
     <Box sx={{
-      // border: '1px solid #ccc',
-      marginTop: 1,
     }}
     >
       <Card
         sx={{
+
           transition: 'all 0.2s ease-in-out',
-          position: 'absolute',
+          position: 'fixed',
+          zIndex: floatVisible ? 10 : -1,
           top: `${floatPosition.top - 40}px`,
           left: `${floatPosition.left}px`,
 
@@ -157,7 +212,8 @@ function ArticleEditor() {
       >
 
         <Editor
-          placeholder="Write something..."
+          onBlur={onBlur}
+          placeholder={t('Write something...')}
           editorState={state.editorState}
           handleKeyCommand={handleKeyCommand}
           onChange={onChange}

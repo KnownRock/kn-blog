@@ -24,23 +24,18 @@ export default function Article() {
       <Container
         maxWidth="lg"
         sx={{
-          // backgroundColor: '#fff',
-          padding: 1,
+          padding: {
+            xs: 0,
+            sm: 0,
+            md: 0,
+            lg: 3,
+            xl: 3,
+          },
         }}
       >
         <Card>
           <CardContent>
-            <Input
-              placeholder="标题"
-              fullWidth
-              sx={{
-                fontSize: 40,
-                fontWeight: 'bold',
-              }}
-            />
-
             <ArticleEditor />
-
           </CardContent>
         </Card>
 
@@ -52,8 +47,6 @@ export default function Article() {
           position: 'fixed',
           bottom: 16,
           right: 16,
-          // right: '50%',
-          // transform: 'translateX(50%)',
         }}
         size="large"
       >
