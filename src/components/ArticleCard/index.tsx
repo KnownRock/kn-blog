@@ -21,13 +21,15 @@ export default function ArticleCard(sx: SxProps<Theme>) {
       <CardActionArea onClick={onOpen}>
         <CardMedia
           component="img"
-          height="500"
+          height={
+            +(import.meta.env.VITE_APP_CARD_MEDIA_HEIGHT ?? '400')
+          }
           image="/static/images/card.png"
           alt="green iguana"
         />
       </CardActionArea>
       <CardContent>
-        <Typography gutterBottom variant="h5" component="div">
+        <Typography gutterBottom variant="h4" component="div">
           Node Red
         </Typography>
         <Typography variant="body2" color="text.secondary">

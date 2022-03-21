@@ -8,14 +8,18 @@ import Typography from '@mui/material/Typography'
 
 function ResponsiveAppBar() {
   return (
-    <AppBar position="sticky">
-      <Toolbar>
-        {/* <Container maxWidth="xl"> */}
+    <AppBar
+      position="sticky"
+      sx={{
+      }}
+    >
+      <Toolbar variant="dense">
+        <Container maxWidth="lg">
 
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {import.meta.env.VITE_APP_TITLE}
-        </Typography>
-        {/* </Container> */}
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            {import.meta.env.VITE_APP_TITLE}
+          </Typography>
+        </Container>
       </Toolbar>
     </AppBar>
   )

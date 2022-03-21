@@ -6,7 +6,7 @@ function Home() {
   return (
     <Box sx={{ paddingBottom: 3 }}>
       <TopBar />
-      <Container maxWidth="xl">
+      <Container maxWidth="md">
         <Box sx={{ paddingTop: 3 }}>
           <ArticleCard />
         </Box>

@@ -11,13 +11,14 @@ i18n
       en: {
         translation: {
           'Write something...': 'Write something...',
+          Title: 'Title',
         },
       },
       cn: {
         translation: {
           'Write something...': '写点什么...',
+          Title: '标题',
         },
-
       },
     },
     lng: 'cn', // if you're using a language detector, do not define the lng option

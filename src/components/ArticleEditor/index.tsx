@@ -208,7 +208,9 @@ function ArticleEditor() {
         ref={editorContainer}
         sx={{
           paddingTop: 1,
+          backgroundColor: 'rgba(255,255,0,0.1)',
         }}
+
       >
 
         <Editor
@@ -218,6 +220,9 @@ function ArticleEditor() {
           handleKeyCommand={handleKeyCommand}
           onChange={onChange}
           blockStyleFn={myBlockStyleFn}
+          onTab={(e) => {
+            e.preventDefault()
+          }}
         />
       </Box>
     </Box>
