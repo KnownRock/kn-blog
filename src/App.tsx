@@ -1,7 +1,3 @@
-import { useState } from 'react'
-import {
-  AppBar, Box, createTheme, ThemeProvider, Toolbar, Typography,
-} from '@mui/material'
 import {
   Routes,
   Route,
@@ -9,6 +5,7 @@ import {
 
 import Article from './views/Article'
 import Home from './views/Home'
+import Files from './views/Files'
 
 function App() {
   return (
@@ -26,6 +23,12 @@ function App() {
         }
       />
       <Route path="me" element={3} />
+      <Route
+        path="files"
+        element={
+          <Files />
+      }
+      />
     </Routes>
   )
 }
