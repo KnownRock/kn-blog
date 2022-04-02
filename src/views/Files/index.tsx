@@ -1,11 +1,12 @@
 import {
-  Box, Button, Card, CardContent, CardHeader, Container, IconButton,
+  Box, Button, Card, CardContent, CardHeader, Container, IconButton, SxProps, Theme,
 } from '@mui/material'
 // import TreeView from '@mui/lab/TreeView'
 // import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 // import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 // import TreeItem from '@mui/lab/TreeItem'
 import Grid from '@mui/material/Grid'
+
 // import useAxios from 'axios-hooks'
 import FolderIcon from '@mui/icons-material/Folder'
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'
@@ -13,7 +14,9 @@ import CloudCircleIcon from '@mui/icons-material/CloudCircle'
 
 import { useEffect, useState } from 'react'
 import Minio from 'minio'
+import { useParams, useNavigate } from 'react-router-dom'
 import TopBar from '../../components/TopBar'
+import FileBreadcrumbs from '../../components/FileBreadcrumbs'
 
 declare const minio: typeof Minio
 
@@ -30,13 +33,47 @@ function FileIcon({ type }:{ type: string }) {
   }
 }
 
-function FileButton({ name, type }: { name: string, type: string }) {
+function FileButton({ object }: { object: Minio.BucketItem }) {
+  const navigate = useNavigate()
+  const type = object.name?.endsWith('/') || object.prefix?.endsWith('/') ? 'folder' : 'file'
+  const name = object.name?.replace(/\/$/, '').replace(/^.*\//, '') || object.prefix?.replace(/\/$/, '').replace(/^.*\//, '')
+
+  function handleClick() {
+    // console.log(object)
+    if (type === 'folder') {
+      navigate(`/files/${object.prefix}`)
+    }
+  }
+
   return (
-    <Button>
-      <Box>
-        <FileIcon type={type} />
+    <Button
+      onClick={() => handleClick()}
+      sx={{
+        borderRadius: 2,
+        border: '1px solid',
+        width: '100%',
+        // margin: 2,
+
+      }}
+    >
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        // padding: 2,
+
+      }}
+      >
+        <Box>
+          <FileIcon type={type} />
+        </Box>
+
         <Box sx={{
           textTransform: 'none',
+          fontSize: '0.8rem',
+          fontWeight: 'bold',
+
         }}
         >
           {name}
@@ -46,61 +83,53 @@ function FileButton({ name, type }: { name: string, type: string }) {
   )
 }
 
-function getRandomType() {
-  const types = ['folder', 'file', 'cloud']
-  return types[Math.floor(Math.random() * types.length)]
+function useListObjects(bucket: string, prefix: string) {
+  const [objects, setObjects] = useState([] as Array<Minio.BucketItem>)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const mc = new minio.Client({
+          endPoint: '192.168.199.252',
+          port: 9000,
+          useSSL: false,
+          accessKey: 'minioadmin',
+          secretKey: 'minioadmin',
+        })
+        const stream = await mc.extensions.listObjectsV2WithMetadata(bucket, prefix)
+        const objs = await new Promise<Array<Minio.BucketItem>>((resolve, reject) => {
+          const objectsListTemp: Array<Minio.BucketItem> = []
+          stream.on('data', (obj) => objectsListTemp.push(obj))
+          stream.on('error', reject)
+          stream.on('end', () => {
+            resolve(objectsListTemp)
+          })
+        })
+        setObjects(objs)
+        setLoading(false)
+      } catch (e) {
+        setError(true)
+      }
+    })()
+  }, [bucket, prefix])
+
+  return { objects, loading, error }
 }
 
 function Files() {
-  // const [buckets, setBuckets] = useState(Array<Minio.BucketItemFromList>())
+  const { '*': path } = useParams()
 
-  useEffect(() => {
-    const getBuckets = async () => {
-      // create the client
-      const mc = new minio.Client({
-        endPoint: 'localhost',
-        port: 9000,
-        useSSL: false,
-        accessKey: 'aaaaaaaa',
-        secretKey: 'aaaaaaaa',
-      })
-      // list buckets
-      // const res = await mc.listBuckets()
-      const stream = await mc.listObjectsV2('private', '/old/')
-      const objects = await new Promise((resolve, reject) => {
-        const objectsListTemp: Array<Minio.BucketItem> = []
-        stream.on('data', (obj) => objectsListTemp.push(obj))
-        stream.on('error', reject)
-        stream.on('end', () => {
-          resolve(objectsListTemp)
-        })
-      })
-      console.log(objects)
-
-      // console.log(res.map((bucket) => bucket.name))
-
-      // setBuckets(res)
-    }
-    getBuckets()
-  }, [])
-
-  // const [{ data, loading, error }, refetch] = useAxios({
-  //   method: 'get',
-  //   url: 'http://localhost:9000/public',
-  //   responseType: 'text',
-  // })
-  // if (data) {
-  //   // console.log(convert.xml2json(data, { compact: true, spaces: 4 }))
-  // }
-
-  // console.log(data)
+  const { objects, loading, error } = useListObjects('private', `/${path}`)
+  console.log(objects)
 
   return (
     <Box sx={{
       // paddingBottom: 3,
       height: '100vh',
       display: 'flex',
-      opacity: 0.1,
+      // opacity: 0.1,
       // display: 'none',
       overflow: 'hidden',
       flexDirection: 'column',
@@ -117,46 +146,48 @@ function Files() {
 
           },
           flexGrow: 1,
+          overflow: 'hidden',
         }}
       >
-        <Card>
+        <Card sx={{
+          height: '100%',
+          overflow: 'auto',
+        }}
+        >
           <CardContent>
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+                backgroundColor: 'white',
+                padding: 1,
+              }}
+            >
+              <FileBreadcrumbs path={path || ''} />
+            </Box>
             <Box>
               <Grid container spacing={2}>
-                {/* <Grid item xs={12} md={4}>
-                  <Item>
-                    <TreeView
-                      aria-label="file system navigator"
-                      defaultCollapseIcon={<ExpandMoreIcon />}
-                      defaultExpandIcon={<ChevronRightIcon />}
-                      sx={{
-                        // height: 240, flexGrow: 1, maxWidth: 400, overflowY: 'auto',
-                      }}
+                {
+                  objects.map((obj) => (
+                    <Grid
+                      key={obj.name || obj.prefix}
+                      item
+                      xs={12}
+                      sm={4}
+                      md={3}
+                      lg={3}
+                      xl={3}
                     >
-                      <TreeItem nodeId="1" label="Applications">
-                        <TreeItem nodeId="2" label="Calendar" />
-                      </TreeItem>
-                      <TreeItem nodeId="5" label="Documents">
-                        <TreeItem nodeId="10" label="OSS" />
-                        <TreeItem nodeId="6" label="MUI">
-                          <TreeItem nodeId="8" label="index.js" />
-                        </TreeItem>
-                      </TreeItem>
-                    </TreeView>
-                  </Item>
-                </Grid> */}
-                <Grid item xs={12} md={8}>
-                  <Box>
-                    {
-                      Array.from({ length: 10 }, (_, i) => (
+                      <Box>
+                        <FileButton
+                          object={obj}
+                        />
+                      </Box>
+                    </Grid>
+                  ))
+                }
 
-                        <FileButton key={i} type={getRandomType()} name={`${i}`} />
-
-                      ))
-                    }
-
-                  </Box>
-                </Grid>
               </Grid>
 
             </Box>
