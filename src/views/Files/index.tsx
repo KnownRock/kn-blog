@@ -52,7 +52,7 @@ function getRandomType() {
 }
 
 function Files() {
-  const [buckets, setBuckets] = useState(Array<Minio.BucketItemFromList>())
+  // const [buckets, setBuckets] = useState(Array<Minio.BucketItemFromList>())
 
   useEffect(() => {
     const getBuckets = async () => {
@@ -65,11 +65,21 @@ function Files() {
         secretKey: 'aaaaaaaa',
       })
       // list buckets
-      const res = await mc.listBuckets()
+      // const res = await mc.listBuckets()
+      const stream = await mc.listObjectsV2('private', '/old/')
+      const objects = await new Promise((resolve, reject) => {
+        const objectsListTemp: Array<Minio.BucketItem> = []
+        stream.on('data', (obj) => objectsListTemp.push(obj))
+        stream.on('error', reject)
+        stream.on('end', () => {
+          resolve(objectsListTemp)
+        })
+      })
+      console.log(objects)
 
-      console.log(res.map((bucket) => bucket.name))
+      // console.log(res.map((bucket) => bucket.name))
 
-      setBuckets(res)
+      // setBuckets(res)
     }
     getBuckets()
   }, [])
@@ -90,7 +100,7 @@ function Files() {
       // paddingBottom: 3,
       height: '100vh',
       display: 'flex',
-      // opacity: 0.1,
+      opacity: 0.1,
       // display: 'none',
       overflow: 'hidden',
       flexDirection: 'column',
