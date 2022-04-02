@@ -1,16 +1,21 @@
 import {
   Box, Button, Card, CardContent, CardHeader, Container, IconButton,
 } from '@mui/material'
-import TreeView from '@mui/lab/TreeView'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import TreeItem from '@mui/lab/TreeItem'
+// import TreeView from '@mui/lab/TreeView'
+// import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+// import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+// import TreeItem from '@mui/lab/TreeItem'
 import Grid from '@mui/material/Grid'
-
+// import useAxios from 'axios-hooks'
 import FolderIcon from '@mui/icons-material/Folder'
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'
 import CloudCircleIcon from '@mui/icons-material/CloudCircle'
+
+import { useEffect, useState } from 'react'
+import Minio from 'minio'
 import TopBar from '../../components/TopBar'
+
+declare const minio: typeof Minio
 
 function FileIcon({ type }:{ type: string }) {
   switch (type) {
@@ -25,10 +30,7 @@ function FileIcon({ type }:{ type: string }) {
   }
 }
 
-function FileButton({ name, type }:{
-  name: string,
-  type: string
-}) {
+function FileButton({ name, type }: { name: string, type: string }) {
   return (
     <Button>
       <Box>
@@ -44,13 +46,52 @@ function FileButton({ name, type }:{
   )
 }
 
-const Item = Box
-function Home() {
+function getRandomType() {
+  const types = ['folder', 'file', 'cloud']
+  return types[Math.floor(Math.random() * types.length)]
+}
+
+function Files() {
+  const [buckets, setBuckets] = useState(Array<Minio.BucketItemFromList>())
+
+  useEffect(() => {
+    const getBuckets = async () => {
+      // create the client
+      const mc = new minio.Client({
+        endPoint: 'localhost',
+        port: 9000,
+        useSSL: false,
+        accessKey: 'aaaaaaaa',
+        secretKey: 'aaaaaaaa',
+      })
+      // list buckets
+      const res = await mc.listBuckets()
+
+      console.log(res.map((bucket) => bucket.name))
+
+      setBuckets(res)
+    }
+    getBuckets()
+  }, [])
+
+  // const [{ data, loading, error }, refetch] = useAxios({
+  //   method: 'get',
+  //   url: 'http://localhost:9000/public',
+  //   responseType: 'text',
+  // })
+  // if (data) {
+  //   // console.log(convert.xml2json(data, { compact: true, spaces: 4 }))
+  // }
+
+  // console.log(data)
+
   return (
     <Box sx={{
       // paddingBottom: 3,
       height: '100vh',
       display: 'flex',
+      // opacity: 0.1,
+      // display: 'none',
       overflow: 'hidden',
       flexDirection: 'column',
     }}
@@ -95,16 +136,16 @@ function Home() {
                   </Item>
                 </Grid> */}
                 <Grid item xs={12} md={8}>
-                  <Item>
-                    <Box>
-                      {
-                        Array.from({ length: 10 }, (_, i) => (
-                          <FileButton type={i < 4 ? 'folder' : (i > 6 ? '' : 'cloud')} key={i} name={`${i}`} />
-                        ))
-                      }
+                  <Box>
+                    {
+                      Array.from({ length: 10 }, (_, i) => (
 
-                    </Box>
-                  </Item>
+                        <FileButton key={i} type={getRandomType()} name={`${i}`} />
+
+                      ))
+                    }
+
+                  </Box>
                 </Grid>
               </Grid>
 
@@ -118,4 +159,4 @@ function Home() {
   )
 }
 
-export default Home
+export default Files
