@@ -136,39 +136,26 @@ function Files() {
     }}
     >
       <TopBar />
-      <Container
-        maxWidth="xl"
-        sx={{
-          padding: {
-            xs: 0,
-            sm: 0,
-            md: 4,
-
-          },
-          flexGrow: 1,
-          overflow: 'hidden',
-        }}
+      <Card sx={{
+        height: '100%',
+        overflow: 'auto',
+      }}
       >
-        <Card sx={{
-          height: '100%',
-          overflow: 'auto',
-        }}
-        >
-          <CardContent>
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 1,
-                backgroundColor: 'white',
-                padding: 1,
-              }}
-            >
-              <FileBreadcrumbs path={path || ''} />
-            </Box>
-            <Box>
-              <Grid container spacing={2}>
-                {
+        <CardContent>
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+              backgroundColor: 'white',
+              padding: 1,
+            }}
+          >
+            <FileBreadcrumbs path={path || ''} />
+          </Box>
+          <Box>
+            <Grid container spacing={2}>
+              {
                   objects.map((obj) => (
                     <Grid
                       key={obj.name || obj.prefix}
@@ -188,14 +175,13 @@ function Files() {
                   ))
                 }
 
-              </Grid>
+            </Grid>
 
-            </Box>
+          </Box>
 
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
-      </Container>
     </Box>
   )
 }
