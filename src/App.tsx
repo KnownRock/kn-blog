@@ -24,7 +24,7 @@ function App() {
       />
       <Route path="me" element={3} />
       <Route
-        path="files"
+        path="/files/*"
         element={
           <Files />
       }
