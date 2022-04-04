@@ -3,7 +3,7 @@ import Minio from 'minio'
 import { dir, getFile } from '../utils/fs'
 
 export function useDir(fsPath: string) {
-  const [objects, setObjects] = useState([] as Array<Minio.BucketItemWithMetadata>)
+  const [objects, setObjects] = useState<Awaited<ReturnType<typeof dir>>>([])
   const [loading, setLoading] = useState(true)
   const [random, setRandom] = useState(Math.random())
   const [error, setError] = useState(false)

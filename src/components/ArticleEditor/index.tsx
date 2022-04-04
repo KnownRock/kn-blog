@@ -26,7 +26,12 @@ function ArticleEditor() {
     EditorState.createEmpty(),
   })
   const editorContainer = useRef<HTMLDivElement>(null)
-  const selectionChangeTimer = useRef<number>(0)
+  // const selectionChangeTimer = useRef<NodeJS.Timeout>(null)
+  const [
+    selectionChangeTimer,
+    setSelectionChangeTimer] = useState<NodeJS.Timeout>(
+    setTimeout(() => {}),
+  )
   const [count, setCount] = useState(0)
 
   const [floatPosition, setFloatPosition] = useState({
@@ -108,8 +113,8 @@ function ArticleEditor() {
   }
 
   const debouncedOnSelectionChanged = (editorState: EditorState) => {
-    if (selectionChangeTimer.current) {
-      clearTimeout(selectionChangeTimer.current)
+    if (selectionChangeTimer) {
+      clearTimeout(selectionChangeTimer)
     }
     setCount(count + 1)
     if (count > 5) {
@@ -117,10 +122,10 @@ function ArticleEditor() {
       onSelectionChanged(editorState)
     }
 
-    selectionChangeTimer.current = setTimeout(() => {
+    setSelectionChangeTimer(setTimeout(() => {
       onSelectionChanged(editorState)
       setCount(0)
-    }, 10)
+    }, 10))
   }
 
   const onChange = (editorState: EditorState) => {

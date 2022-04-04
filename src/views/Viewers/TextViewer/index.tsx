@@ -22,9 +22,11 @@ const extLanguageDict: { [key: string]: string } = {
 }
 
 function Viewer({ path }: { path: string }) {
+  // debugger
   const [text, setText] = useState('')
 
   const { object, loading, error } = useGetFile(path || '')
+  console.log('object', object)
 
   useEffect(() => {
     if (object) {
@@ -39,6 +41,8 @@ function Viewer({ path }: { path: string }) {
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error...</div>
 
+  console.log('text', text)
+
   const language = extLanguageDict[path?.match(/\.([^.]*)$/)?.[1] ?? ''] ?? 'text'
 
   const handleSave = () => {
@@ -49,10 +53,10 @@ function Viewer({ path }: { path: string }) {
     <>
       <Editor
         options={{
-          fontSize: '16px',
+          fontSize: 16,
         }}
         height="100%"
-        defaultValue={text}
+        value={text}
         defaultLanguage={language}
         onChange={(newValue, e) => {
           setText(newValue ?? '')

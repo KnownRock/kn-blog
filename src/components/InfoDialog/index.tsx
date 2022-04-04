@@ -20,6 +20,7 @@ export default function AlertDialog({
   options?: {
     title?: string,
     content?: string,
+    component?: React.ReactNode,
   }
 }) {
   const handleClose = () => {
@@ -53,6 +54,12 @@ export default function AlertDialog({
           </DialogContentText>
         </DialogContent>
       ) : null}
+      {options && options.component ? (
+        <DialogContent>
+          {options.component}
+        </DialogContent>
+      ) : null}
+
       <DialogActions>
         <Button onClick={handleClose}>{t('Cancel')}</Button>
         <Button onClick={handleOk} autoFocus>

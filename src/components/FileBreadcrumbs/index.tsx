@@ -17,6 +17,8 @@ export default function CollapsedBreadcrumbs({ path }: { path: string }) {
   const { t } = useTranslation()
 
   function getHandleClick(p:string) {
+    console.log(p)
+    console.log(path.split('/'))
     return () => {
       navigate(p)
     }
@@ -48,7 +50,7 @@ export default function CollapsedBreadcrumbs({ path }: { path: string }) {
               <Button
                 key={item}
                 color="inherit"
-                onClick={getHandleClick(path.split('/').slice(0, index + 1).join('/'))}
+                onClick={getHandleClick(path.split('/').slice(0, index).concat('').join('/'))}
               >
                 {item}
               </Button>

@@ -22,8 +22,9 @@ export default function FileButton(
   },
 ) {
   const navigate = useNavigate()
-  const type = object.name?.endsWith('/') || object.prefix?.endsWith('/') ? 'folder' : 'file'
-  const name = object.name?.replace(/\/$/, '').replace(/^.*\//, '') || object.prefix?.replace(/\/$/, '').replace(/^.*\//, '')
+  const { type } = object
+  const name = object.displayName
+  // object.name?.replace(/\/$/, '').replace(/^.*\//, '') || object.prefix?.replace(/\/$/, '').replace(/^.*\//, '')
   const [openRenameDialog, setOpenRenameDialog] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
@@ -37,16 +38,20 @@ export default function FileButton(
 
   function handleClick() {
     // console.log(object)
-    if (type === 'folder') {
-      navigate(`/files/${object.prefix}`)
+    if (type === 'folder' || type === 'remote-folder') {
+      navigate(`/files${object.prefix}`)
     }
     if (type === 'file') {
-      if (object.metadata['content-type'].startsWith('image/')) {
+      console.log(object)
+      const contnetType = object.metadata['content-type']
+      if (contnetType.startsWith('image/')) {
         navigate(`/image-viewer?path=${object.name}`)
-      } else if (object.metadata['content-type'].startsWith('text/')) {
+      } else if (contnetType.startsWith('text/') || contnetType.startsWith('application/json')) {
         navigate(`/text-viewer?path=${object.name}`)
-      } else if (object.metadata['content-type'].startsWith('video/')) {
+      } else if (contnetType.startsWith('video/')) {
         navigate(`/video-viewer?path=${object.name}`)
+      } else {
+        navigate(`/text-viewer?path=${object.name}`)
       }
       // navigate(`/pic?bucket=${bucket}&file=${object.name}`)
     }

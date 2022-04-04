@@ -15,14 +15,17 @@ import InfoDialog from './components/InfoDialog'
 import InfoContext from './contexts/InfoContext'
 
 type Options = {
-  title: string
-  content: string
+  title?: string
+  content?: string,
+  component?: React.ReactNode,
 }
 function App() {
   const [open, setOpen] = useState(false)
   const [options, setOptions] = useState<{
     title?: string,
     content?: string,
+
+    component?: React.ReactNode,
   }>({})
   const [proms, setProms] = useState<{
     resolve:(value:unknown) => void,

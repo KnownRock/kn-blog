@@ -10,6 +10,8 @@ export default function FileIcon({ type }:{ type: string }) {
       return <InsertDriveFileIcon fontSize="large" />
     case 'cloud':
       return <CloudCircleIcon fontSize="large" />
+    case 'remote-folder':
+      return <CloudCircleIcon fontSize="large" />
     default:
       return <InsertDriveFileIcon fontSize="large" />
   }

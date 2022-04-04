@@ -1,8 +1,9 @@
 import React from 'react'
 
 type Options = {
-  title: string
-  content: string
+  title?: string
+  content?: string
+  component?: React.ReactNode
 }
 
 export default React.createContext({
