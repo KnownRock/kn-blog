@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography'
 import Link from '@mui/material/Link'
 import { useNavigate } from 'react-router-dom'
 import { Button, SxProps, Theme } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 // function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
 //   event.preventDefault()
@@ -13,6 +14,7 @@ import { Button, SxProps, Theme } from '@mui/material'
 
 export default function CollapsedBreadcrumbs({ path }: { path: string }) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   function getHandleClick(p:string) {
     return () => {
@@ -22,7 +24,7 @@ export default function CollapsedBreadcrumbs({ path }: { path: string }) {
 
   const paths = path.split('/')
   const restPaths = paths.filter((p) => p !== '')
-  const breadcrumbs = ['root'].concat(restPaths)
+  const breadcrumbs = [t('root')].concat(restPaths)
 
   // TODO: convert button to a link which has removed the default click event
   return (
