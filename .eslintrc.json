@@ -56,7 +56,8 @@
             }
         ],
         "react/react-in-jsx-scope": "off",
-        "@typescript-eslint/semi": "off"
+        "@typescript-eslint/semi": "off",
+        "react/jsx-no-bind": "off"
     },
 
     "ignorePatterns":[
