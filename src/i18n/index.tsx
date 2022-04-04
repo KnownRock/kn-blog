@@ -10,14 +10,31 @@ i18n
     resources: {
       en: {
         translation: {
-          'Write something...': 'Write something...',
-          Title: 'Title',
+          'file.delete.title': 'Delete file',
+          'file.delete.description': 'Are you sure you want to delete this file?',
+          'folder.delete.title': 'Delete folder',
+          'folder.delete.description': 'Are you sure you want to delete this folder?',
         },
       },
       cn: {
         translation: {
           'Write something...': '写点什么...',
           Title: '标题',
+          Upload: '上传',
+          Delete: '删除',
+          Rename: '重命名',
+          root: '根目录',
+          Folders: '文件夹',
+          Files: '文件',
+          Download: '下载',
+          'New name': '新名称',
+          'Ok': '确定',
+          'Cancel': '取消',
+          'file.delete.title': '删除文件',
+          'file.delete.description': '确定要删除这个文件吗？',
+
+          'folder.delete.title': '删除文件夹',
+          'folder.delete.description': '确定要删除这个文件夹吗？',
         },
       },
     },

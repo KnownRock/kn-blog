@@ -1,5 +1,5 @@
 import {
-  Box, Button, Card, CardContent, CardHeader, Container, IconButton, SxProps, Theme,
+  Box, Button, Typography,
 } from '@mui/material'
 // import TreeView from '@mui/lab/TreeView'
 // import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -8,182 +8,173 @@ import {
 import Grid from '@mui/material/Grid'
 
 // import useAxios from 'axios-hooks'
-import FolderIcon from '@mui/icons-material/Folder'
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'
-import CloudCircleIcon from '@mui/icons-material/CloudCircle'
 
-import { useEffect, useState } from 'react'
-import Minio from 'minio'
-import { useParams, useNavigate } from 'react-router-dom'
+import {
+  useEffect, useMemo, useState,
+} from 'react'
+
+import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import TopBar from '../../components/TopBar'
 import FileBreadcrumbs from '../../components/FileBreadcrumbs'
+import FileButton from './FileButton'
+import { useDir } from '../../hooks/fs-hooks'
+import { uploadFile as uploadFileToClient } from '../../utils/fs'
 
-declare const minio: typeof Minio
+import FilesContext from '../../contexts/FilesContext'
 
-function FileIcon({ type }:{ type: string }) {
-  switch (type) {
-    case 'folder':
-      return <FolderIcon fontSize="large" />
-    case 'file':
-      return <InsertDriveFileIcon fontSize="large" />
-    case 'cloud':
-      return <CloudCircleIcon fontSize="large" />
-    default:
-      return <InsertDriveFileIcon fontSize="large" />
-  }
-}
+function Files() {
+  const { '*': path = '' } = useParams()
+  const { t } = useTranslation()
 
-function FileButton({ object }: { object: Minio.BucketItem }) {
-  const navigate = useNavigate()
-  const type = object.name?.endsWith('/') || object.prefix?.endsWith('/') ? 'folder' : 'file'
-  const name = object.name?.replace(/\/$/, '').replace(/^.*\//, '') || object.prefix?.replace(/\/$/, '').replace(/^.*\//, '')
+  const {
+    objects, loading, error, refetch,
+  } = useDir(`/${path}`)
 
-  function handleClick() {
-    // console.log(object)
-    if (type === 'folder') {
-      navigate(`/files/${object.prefix}`)
+  const contextValue = useMemo(() => ({
+    refetch,
+  }), [refetch])
+
+  const typedObjects = useMemo(() => {
+    if (objects) {
+      return objects.map((object) => ({
+        ...object,
+        type: object.name?.endsWith('/') || object.prefix?.endsWith('/') ? 'folder' : 'file',
+      }))
     }
+    return []
+  }, [objects])
+
+  const folderObjects = useMemo(() => typedObjects.filter((object) => object.type === 'folder'), [typedObjects])
+  const fileObjects = useMemo(() => typedObjects.filter((object) => object.type === 'file'), [typedObjects])
+
+  const uploadFile = () => {
+    uploadFileToClient(path)
+  }
+
+  // TODO: make better transition
+  if (loading && !objects) {
+    return <div>Loading...</div>
+  }
+  if (error && !objects) {
+    return <div>Error</div>
   }
 
   return (
-    <Button
-      onClick={() => handleClick()}
-      sx={{
-        borderRadius: 2,
-        border: '1px solid',
-        width: '100%',
-        // margin: 2,
-
-      }}
-    >
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
-        // padding: 2,
-
-      }}
+    <FilesContext.Provider value={contextValue}>
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+          backgroundColor: 'white',
+          padding: 1,
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
       >
-        <Box>
-          <FileIcon type={type} />
-        </Box>
-
+        <FileBreadcrumbs path={path || ''} />
         <Box sx={{
-          textTransform: 'none',
-          fontSize: '0.8rem',
-          fontWeight: 'bold',
-
+          display: 'flex',
+          alignItems: 'center',
         }}
         >
-          {name}
+          <Button variant="contained" onClick={uploadFile}>
+            {t('Upload')}
+          </Button>
         </Box>
+
       </Box>
-    </Button>
+      <Box sx={{
+        paddingLeft: 2,
+        paddingRight: 2,
+      }}
+      >
+        {folderObjects.length ? (
+          <Box>
+            <Typography variant="subtitle1" component="h6">{t('Folders')}</Typography>
+
+            <Grid container spacing={2}>
+              {
+            folderObjects.map((obj) => (
+              <Grid
+                key={obj.name || obj.prefix}
+                item
+                xs={12}
+                sm={4}
+                md={3}
+                lg={3}
+                xl={3}
+              >
+                <Box>
+                  <FileButton object={obj} />
+                </Box>
+              </Grid>
+            ))
+          }
+
+            </Grid>
+          </Box>
+        ) : null}
+
+        {fileObjects.length ? (
+          <Box>
+            <Typography variant="subtitle1" component="h6">{t('Files')}</Typography>
+            <Grid container spacing={2}>
+              {
+              fileObjects.map((obj) => (
+                <Grid
+                  key={obj.name || obj.prefix}
+                  item
+                  xs={12}
+                  sm={4}
+                  md={3}
+                  lg={3}
+                  xl={3}
+                >
+                  <Box>
+                    <FileButton object={obj} />
+                  </Box>
+                </Grid>
+              ))
+            }
+
+            </Grid>
+          </Box>
+        ) : null}
+
+      </Box>
+    </FilesContext.Provider>
   )
 }
 
-function useListObjects(bucket: string, prefix: string) {
-  const [objects, setObjects] = useState([] as Array<Minio.BucketItem>)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+export default function FilesPage() {
+  const { '*': path = '' } = useParams()
+  const { t } = useTranslation()
+  const currentFolderName = path.match(/([^/]*)\/$/)?.[1] ?? t('root')
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const mc = new minio.Client({
-          endPoint: '192.168.199.252',
-          port: 9000,
-          useSSL: false,
-          accessKey: 'minioadmin',
-          secretKey: 'minioadmin',
-        })
-        const stream = await mc.extensions.listObjectsV2WithMetadata(bucket, prefix)
-        const objs = await new Promise<Array<Minio.BucketItem>>((resolve, reject) => {
-          const objectsListTemp: Array<Minio.BucketItem> = []
-          stream.on('data', (obj) => objectsListTemp.push(obj))
-          stream.on('error', reject)
-          stream.on('end', () => {
-            resolve(objectsListTemp)
-          })
-        })
-        setObjects(objs)
-        setLoading(false)
-      } catch (e) {
-        setError(true)
-      }
-    })()
-  }, [bucket, prefix])
-
-  return { objects, loading, error }
-}
-
-function Files() {
-  const { '*': path } = useParams()
-
-  const { objects, loading, error } = useListObjects('private', `/${path}`)
-  console.log(objects)
-
+  // TODO: use real parent's path to back
+  const pathLength = path.split('/').length
   return (
     <Box sx={{
-      // paddingBottom: 3,
       height: '100vh',
       display: 'flex',
-      // opacity: 0.1,
-      // display: 'none',
       overflow: 'hidden',
       flexDirection: 'column',
     }}
     >
-      <TopBar />
-      <Card sx={{
-        height: '100%',
-        overflow: 'auto',
-      }}
+
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflow: 'auto',
+          backgroundColor: 'white',
+        }}
       >
-        <CardContent>
-          <Box
-            sx={{
-              position: 'sticky',
-              top: 0,
-              zIndex: 1,
-              backgroundColor: 'white',
-              padding: 1,
-            }}
-          >
-            <FileBreadcrumbs path={path || ''} />
-          </Box>
-          <Box>
-            <Grid container spacing={2}>
-              {
-                  objects.map((obj) => (
-                    <Grid
-                      key={obj.name || obj.prefix}
-                      item
-                      xs={12}
-                      sm={4}
-                      md={3}
-                      lg={3}
-                      xl={3}
-                    >
-                      <Box>
-                        <FileButton
-                          object={obj}
-                        />
-                      </Box>
-                    </Grid>
-                  ))
-                }
 
-            </Grid>
-
-          </Box>
-
-        </CardContent>
-      </Card>
-
+        <TopBar withBack={pathLength > 1} title={currentFolderName} />
+        <Files />
+      </Box>
     </Box>
   )
 }
-
-export default Files
