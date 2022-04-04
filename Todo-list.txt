@@ -5,3 +5,5 @@ add a file and folder move function
 add a link editor
 link display name
 permission control ui
+
+enhance article editor
