@@ -242,6 +242,13 @@ export default function FilesPage() {
   const { t } = useTranslation()
   const currentFolderName = path.match(/([^/]*)\/$/)?.[1] ?? t('root')
 
+  const decrTitle = (p = '') => {
+    if (p.match(/!\[([^]+)]\.s3/)?.[1]) {
+      return p.match(/!\[([^]+)]\.s3/)?.[1]
+    }
+    return p
+  }
+
   // TODO: use real parent's path to back
   const pathLength = path.split('/').length
   return (
@@ -261,7 +268,7 @@ export default function FilesPage() {
         }}
       >
 
-        <TopBar withBack={pathLength > 1} title={currentFolderName} />
+        <TopBar withBack={pathLength > 1} title={decrTitle(currentFolderName)} />
         <Files />
       </Box>
     </Box>
