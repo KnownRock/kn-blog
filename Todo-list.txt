@@ -6,5 +6,4 @@ add a link editor
 
 permission control ui
 
-fix type checking
 fix remote recursion

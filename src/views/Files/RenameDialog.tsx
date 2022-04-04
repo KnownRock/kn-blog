@@ -19,7 +19,9 @@ export default function FormDialog({
 }:{
   open: boolean,
   setOpen: (open: boolean) => void,
-  object: Minio.BucketItemWithMetadata,
+  object: {
+    name: string,
+  },
 }) {
   const { t } = useTranslation()
   const [value, setValue] = useState(object.name.replace(/^.*\//, ''))

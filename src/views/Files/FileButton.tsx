@@ -18,13 +18,22 @@ export default function FileButton(
   {
     object,
   }: {
-    object: Minio.BucketItemWithMetadata,
+    object: {
+      name: string
+      type: string
+      displayName: string
+      prefix: string
+      metadata: {
+        [key: string]: string
+      }
+    }
   },
 ) {
   const navigate = useNavigate()
   const { type } = object
   const name = object.displayName
-  // object.name?.replace(/\/$/, '').replace(/^.*\//, '') || object.prefix?.replace(/\/$/, '').replace(/^.*\//, '')
+  // object.name?.replace(/\/$/, '')
+  // .replace(/^.*\//, '') || object.prefix?.replace(/\/$/, '').replace(/^.*\//, '')
   const [openRenameDialog, setOpenRenameDialog] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)

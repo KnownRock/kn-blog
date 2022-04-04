@@ -142,42 +142,60 @@ async function listObjects(
   return objs
 }
 
-export async function dir(fsPath:string, recursive = false) {
+type DiredFile = {
+  name:string,
+  type:string,
+  displayName:string,
+  prefix:string,
+  metadata:Minio.ItemBucketMetadata
+  // size:number,
+  // lastModified:string,
+}
+
+export async function dir(fsPath:string, recursive = false) :Promise<Array<DiredFile>> {
   const {
     bucket, path, minioClient, fsPath: linkFilePath,
   } = await resolvePath(fsPath)
 
   const objs = await listObjects(minioClient, bucket, path, recursive)
-
   return objs.map((obj) => {
     if (obj.name) {
       if (obj.name.match(/!\[[^]+]\.s3/)) {
         return {
-          ...obj,
+          // ...obj,
           name: obj.name,
           type: 'remote-folder',
           displayName: obj.name.split('/').pop(),
           prefix: `/${obj.name}/`,
-        }
+          metadata: obj.metadata,
+        } as DiredFile
       }
 
       return {
-        ...obj,
+        // ...obj,
         name: obj.name && `${linkFilePath}${obj.name}`,
         type: 'file',
         displayName: obj.name.split('/').pop(),
-      }
+        metadata: obj.metadata,
+      } as DiredFile
     }
     if (obj.prefix) {
       return {
-        ...obj,
+        // ...obj,
         prefix: obj.prefix && `${linkFilePath}${obj.prefix}`,
         displayName: obj.prefix && obj.prefix.replace(/\/$/, '').replace(/^.*\//, ''),
         type: 'folder',
-      }
+        metadata: obj.metadata,
+      } as DiredFile
     }
 
-    return obj
+    return {
+      name: obj.name,
+      type: 'unknown',
+      displayName: obj.name,
+      metadata: obj.metadata,
+
+    } as DiredFile
   })
 }
 
@@ -227,7 +245,7 @@ export async function getStat(fsPath:string) {
 export async function removeFile(
   fsPath:string,
 ) {
-  debugger
+  // debugger
   const { bucket, path, minioClient } = await resolvePath(fsPath)
   return minioClient.removeObject(bucket, path)
 }
