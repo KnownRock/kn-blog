@@ -7,3 +7,8 @@ link display name
 permission control ui
 
 enhance article editor
+
+change rename to absolute path.
+
+ui setting file in user root.
+make different user have different permissions and ui
