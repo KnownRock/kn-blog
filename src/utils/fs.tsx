@@ -21,7 +21,40 @@ type ResolvedPath = {
   minioClient :Minio.Client
 }
 
-export async function resolvePath(path: string, fsPath = '/', bucket = 'private', minioClient = minioClient1): Promise<ResolvedPath> {
+async function getFileRaw(bucket:string, path:string, minioClient:Minio.Client) {
+  const stream = await minioClient.getObject(bucket, path)
+
+  return new Promise<Blob>((resolve, reject) => {
+    const chunks: Array<Uint8Array> = []
+    stream.on('error', (e) => {
+      reject(e)
+    })
+    stream.on('data', (chunk) => {
+      // console.log(chunk)
+      chunks.push(chunk)
+    })
+    stream.on('end', () => {
+      resolve(new Blob(chunks, { }))
+    })
+  })
+}
+
+async function getFileAsTextRaw(
+  bucket:string,
+  path:string,
+  minioClient:Minio.Client,
+): Promise<string> {
+  const object = await getFileRaw(bucket, path, minioClient)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      resolve(reader.result as string)
+    }
+    reader.readAsText(object)
+  })
+}
+
+export async function resolvePath(path: string, fsPath = '', bucket = 'private', minioClient = minioClient1): Promise<ResolvedPath> {
   const paths = path.split('/')
   let linkFileIndex = -1
 
@@ -37,7 +70,7 @@ export async function resolvePath(path: string, fsPath = '/', bucket = 'private'
   if (linkFileIndex !== -1 && linkFileIndex !== paths.length - 1) {
     const linkFilePath = paths.slice(0, linkFileIndex + 1).join('/')
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    const linkFileText = await getFileAsText(linkFilePath)
+    const linkFileText = await getFileAsTextRaw(bucket, linkFilePath, minioClient)
     const linkObject = JSON.parse(linkFileText)
     const restPath = paths.slice(linkFileIndex + 1).join('/')
 
@@ -56,6 +89,12 @@ export async function resolvePath(path: string, fsPath = '/', bucket = 'private'
     //   }),
     // }
   }
+  console.log({
+    bucket,
+    path,
+    fsPath,
+    minioClient,
+  })
   return {
     bucket,
     path,
@@ -158,15 +197,18 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<Dired
   } = await resolvePath(fsPath)
 
   const objs = await listObjects(minioClient, bucket, path, recursive)
+
   return objs.map((obj) => {
     if (obj.name) {
       if (obj.name.match(/!\[[^]+]\.s3/)) {
+        const displayNameRaw = obj.name.split('/').pop() ?? ''
+        const displayName = displayNameRaw.match(/!\[([^]+)]\.s3/)?.[1] ?? displayNameRaw
+
         return {
-          // ...obj,
-          name: obj.name,
+          name: `${linkFilePath}${obj.name}`,
           type: 'remote-folder',
-          displayName: obj.name.split('/').pop(),
-          prefix: `/${obj.name}/`,
+          displayName: `${displayName}`,
+          prefix: `${linkFilePath}${obj.name}/`,
           metadata: obj.metadata,
         } as DiredFile
       }

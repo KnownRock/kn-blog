@@ -48,7 +48,8 @@ export default function FileButton(
   function handleClick() {
     // console.log(object)
     if (type === 'folder' || type === 'remote-folder') {
-      navigate(`/files${object.prefix}`)
+      // FIXME: unify /
+      navigate(`/files${object.prefix.startsWith('/') ? '' : '/'}${object.prefix}`)
     }
     if (type === 'file') {
       console.log(object)

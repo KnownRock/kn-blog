@@ -17,8 +17,8 @@ export default function CollapsedBreadcrumbs({ path }: { path: string }) {
   const { t } = useTranslation()
 
   function getHandleClick(p:string) {
-    console.log(p)
-    console.log(path.split('/'))
+    // console.log(p)
+    // console.log(path.split('/'))
     return () => {
       navigate(p)
     }

@@ -30,7 +30,7 @@ export default function FormDialog({
   const handleOk = () => {
     renameFile(
       object.name,
-      `${(`/${object.name}`).replace(/\/[^/]*$/, '')}/${value}`,
+      `${(`${object.name}`).replace(/\/[^/]*$/, '')}/${value}`,
     )
       .then(() => {
         refetch()

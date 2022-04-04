@@ -3,7 +3,5 @@ add a html base application holder, running html in a sandboxed iframe
 add a file type resgistry
 add a file and folder move function
 add a link editor
-
+link display name
 permission control ui
-
-fix remote recursion
