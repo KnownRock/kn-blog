@@ -69162,8 +69162,11 @@ var Client = /*#__PURE__*/function () {
 
 
       metaData = (0, _helpers.prependXAMZMeta)(metaData);
+      // if (stream instanceof ArrayBuffer){
+      //   stream = new Buffer(stream);
+      // }
 
-      if (typeof stream === 'string' || stream instanceof Buffer) {
+      if (typeof stream === 'string' || stream instanceof Buffer || stream instanceof Uint8Array){
         // Adapts the non-stream interface into a stream.
         size = stream.length;
         stream = (0, _helpers.readableStream)(stream);
