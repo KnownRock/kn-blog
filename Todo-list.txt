@@ -1,0 +1,3 @@
+add a html viewer
+add a html base application holder, running html in a sandboxed iframe
+add a file type resgistry
