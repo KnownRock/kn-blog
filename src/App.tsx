@@ -3,7 +3,6 @@ import {
   Route,
 } from 'react-router-dom'
 
-import { useMemo, useState } from 'react'
 import Article from './views/Article'
 import Home from './views/Home'
 import Files from './views/Files'
