@@ -24,3 +24,4 @@
 ? add a recycle bin
 ? rename function add a move function which can open a folder selector
 ? getBucketPolicy to change ui
+? setBucketPolicy to make a new user
