@@ -28,4 +28,4 @@
 
 
 ? divide the file manager and other viewer and build each one and save in s3
-  every app as a app
+  every app as a app or handle other application in file manager?
