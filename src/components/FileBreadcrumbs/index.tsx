@@ -28,12 +28,7 @@ export default function CollapsedBreadcrumbs({ path }: { path: string }) {
   const restPaths = paths.filter((p) => p !== '')
 
   // TODO: move to a tool ts
-  const breadcrumbs = [t('root')].concat(restPaths).map((p, i) => {
-    if (p.match(/!\[([^]+)]\.s3/)?.[1]) {
-      return p.match(/!\[([^]+)]\.s3/)?.[1]
-    }
-    return p
-  })
+  const breadcrumbs = [t('root')].concat(restPaths)
 
   // TODO: convert button to a link which has removed the default click event
   return (

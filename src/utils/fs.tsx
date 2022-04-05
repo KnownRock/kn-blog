@@ -50,6 +50,7 @@ async function getFileAsTextRaw(
     reader.onload = () => {
       resolve(reader.result as string)
     }
+    reader.onerror = reject
     reader.readAsText(object)
   })
 }
@@ -69,32 +70,12 @@ export async function resolvePath(path: string, fsPath = '', bucket = 'private',
   // TODO: recursive link file find
   if (linkFileIndex !== -1 && linkFileIndex !== paths.length - 1) {
     const linkFilePath = paths.slice(0, linkFileIndex + 1).join('/')
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const linkFileText = await getFileAsTextRaw(bucket, linkFilePath, minioClient)
     const linkObject = JSON.parse(linkFileText)
     const restPath = paths.slice(linkFileIndex + 1).join('/')
 
     return resolvePath(restPath, `${fsPath + linkFilePath}/`, linkObject.bucket, minioClient)
-
-    // return {
-    //   bucket: linkObject.bucket,
-    //   path: restPath,
-    //   fsPath: `${linkFilePath}/`,
-    //   minioClient: new minio.Client({
-    //     endPoint: linkObject.endPoint,
-    //     port: linkObject.port,
-    //     useSSL: linkObject.useSSL,
-    //     accessKey: linkObject.accessKey,
-    //     secretKey: linkObject.secretKey,
-    //   }),
-    // }
   }
-  console.log({
-    bucket,
-    path,
-    fsPath,
-    minioClient,
-  })
   return {
     bucket,
     path,
@@ -155,12 +136,7 @@ export async function saveTextFile(
   text:string,
 ) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
-  minioClient.putObject(bucket, path, text, { 'Content-Type': 'text/plain' })
-    .then(() => {
-      console.log('Uploaded')
-    }).catch((e1) => {
-      console.log(e1)
-    })
+  return minioClient.putObject(bucket, path, text, { 'Content-Type': 'text/plain' })
 }
 
 async function listObjects(
@@ -200,9 +176,10 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<Dired
 
   return objs.map((obj) => {
     if (obj.name) {
-      if (obj.name.match(/!\[[^]+]\.s3/)) {
+      if (obj.name.match(/^[^.]+.s3$/)) {
         const displayNameRaw = obj.name.split('/').pop() ?? ''
-        const displayName = displayNameRaw.match(/!\[([^]+)]\.s3/)?.[1] ?? displayNameRaw
+        const displayName = displayNameRaw
+        // displayNameRaw.match(/([^.]+).s3/)?.[1] ?? displayNameRaw
 
         return {
           name: `${linkFilePath}${obj.name}`,
@@ -224,6 +201,7 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<Dired
     if (obj.prefix) {
       return {
         // ...obj,
+        name: obj.prefix.replace(/\/$/, ''),
         prefix: obj.prefix && `${linkFilePath}${obj.prefix}`,
         displayName: obj.prefix && obj.prefix.replace(/\/$/, '').replace(/^.*\//, ''),
         type: 'folder',
@@ -268,18 +246,19 @@ export async function getFileAsText(fsPath:string): Promise<string> {
     reader.onload = () => {
       resolve(reader.result as string)
     }
+    reader.onerror = reject
     reader.readAsText(object)
   })
 }
 
-export async function getStat(fsPath:string) {
+export async function stat(fsPath:string) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
   return new Promise((resolve, reject) => {
-    minioClient.statObject(bucket, path, (err, stat) => {
+    minioClient.statObject(bucket, path, (err, s) => {
       if (err) {
         reject(err)
       } else {
-        resolve(stat)
+        resolve(s)
       }
     })
   })
@@ -319,4 +298,25 @@ export async function removeDir(fsPath:string) {
 
 export async function renameFile(fsPath:string, newFsPath:string) {
   return copyFile(fsPath, newFsPath).then(() => removeFile(fsPath))
+}
+
+export async function renameFolder(fsPath:string, newFsPath:string) {
+  const { bucket, path, minioClient } = await resolvePath(fsPath)
+  const {
+    bucket: newBucket,
+    path: newPath,
+    minioClient: newMinioClient,
+  } = await resolvePath(newFsPath)
+  const objects = await listObjects(minioClient, bucket, path, true)
+  // TODO: judge if two clients are the same config
+  return Promise.all(objects.map((obj) => {
+    const newObjName = obj.name.replace(new RegExp(`^${path}`), newPath)
+    return renameFile(`${obj.name}`, `${newObjName}`)
+  }))
+}
+
+export async function isExist(newName:string) {
+  const url = newName.startsWith('/') ? newName : `/${newName}`
+  const fatherFolder = url.replace(/\/[^/]+$/, '')
+  return dir(fatherFolder).then((objects) => objects.some((o) => o.name === newName))
 }

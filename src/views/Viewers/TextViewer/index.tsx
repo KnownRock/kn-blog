@@ -19,6 +19,7 @@ const extLanguageDict: { [key: string]: string } = {
   tsx: 'typescript',
   tsconfig: 'json',
   jsx: 'javascript',
+  s3: 'json',
 }
 
 function Viewer({ path }: { path: string }) {

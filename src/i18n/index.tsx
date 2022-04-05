@@ -41,6 +41,7 @@ i18n
           'files.newFile.title': '新建文件',
           'files.newFile.placeholder': '文件名',
           'Remote Folders': '远程文件夹',
+          'Edit': '编辑',
         },
       },
     },

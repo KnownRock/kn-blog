@@ -1,15 +1,7 @@
 import {
-  Box, Button, ButtonGroup, Input, Typography,
+  Box, Button, ButtonGroup, Typography,
 } from '@mui/material'
-// import TreeView from '@mui/lab/TreeView'
-// import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-// import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-// import TreeItem from '@mui/lab/TreeItem'
 import Grid from '@mui/material/Grid'
-import AddIcon from '@mui/icons-material/Add'
-
-// import useAxios from 'axios-hooks'
-
 import {
   useCallback,
   useContext,
@@ -23,52 +15,12 @@ import TopBar from '../../components/TopBar'
 import FileBreadcrumbs from '../../components/FileBreadcrumbs'
 import FileButton from './FileButton'
 import { useDir } from '../../hooks/fs-hooks'
-import { newFile, uploadFile as uploadFileToClient } from '../../utils/fs'
+import { uploadFile as uploadFileToClient } from '../../utils/fs'
 
 import FilesContext from '../../contexts/FilesContext'
 
 import InfoContext from '../../contexts/InfoContext'
-
-type DiredFile = {
-  name: string
-  type: 'file' | 'folder' | 'remote-folder'
-  displayName: string,
-  prefix: string,
-}
-
-function NewFile({ path }:{ path:string }) {
-  const { t } = useTranslation()
-  const { refetch } = useContext(FilesContext)
-  const { info } = useContext(InfoContext)
-
-  let fileName = ''
-
-  const handleNewFile = async () => {
-    info({
-      title: t('files.newFile.title'),
-      component: (
-        <Input
-          defaultValue={path}
-          onChange={(e) => {
-            fileName = e.target.value
-          }}
-          fullWidth
-          placeholder={t('files.newFile.placeholder')}
-        />
-      ),
-    }).then(async () => {
-      newFile(`/${fileName}`).then(() => {
-        refetch()
-      })
-    })
-  }
-
-  return (
-    <Button variant="contained" onClick={handleNewFile}>
-      <AddIcon />
-    </Button>
-  )
-}
+import NewFileButton from './NewFileButton'
 
 function Files() {
   const { '*': path = '' } = useParams()
@@ -84,6 +36,8 @@ function Files() {
 
   const typedObjects = useMemo(() => {
     if (objects) {
+      console.log(objects)
+
       return objects.map((object) => ({
         ...object,
         // type: object.name?.endsWith('/') || object.prefix?.endsWith('/') ? 'folder' : 'file',
@@ -96,6 +50,20 @@ function Files() {
   const remoteFolderObjects = useMemo(() => typedObjects.filter((object) => object.type === 'remote-folder'), [typedObjects])
   const folderObjects = useMemo(() => typedObjects.filter((object) => object.type === 'folder'), [typedObjects])
   const fileObjects = useMemo(() => typedObjects.filter((object) => object.type === 'file'), [typedObjects])
+
+  const groupedObjects = useMemo(
+    () => [{
+      title: t('Remote Folders'),
+      objects: remoteFolderObjects,
+    }, {
+      title: t('Folders'),
+      objects: folderObjects,
+    }, {
+      title: t('Files'),
+      objects: fileObjects,
+    }].filter((group) => group.objects.length > 0),
+    [t, remoteFolderObjects, folderObjects, fileObjects],
+  )
 
   const uploadFile = async () => {
     await uploadFileToClient(path)
@@ -134,7 +102,7 @@ function Files() {
         }}
         >
           <ButtonGroup variant="contained" aria-label="outlined primary button group">
-            <NewFile path={path || ''} />
+            <NewFileButton path={path || ''} />
             <Button variant="contained" onClick={uploadFolder}>
               {t('Upload folder')}
             </Button>
@@ -151,86 +119,32 @@ function Files() {
           paddingRight: 2,
         }}
       >
-
-        {remoteFolderObjects.length ? (
-          <Box>
-            <Typography variant="subtitle1" component="h6">{t('Remote Folders')}</Typography>
-
-            <Grid container spacing={2}>
-              {
-            remoteFolderObjects.map((obj) => (
-              <Grid
-                key={obj.name || obj.prefix}
-                item
-                xs={12}
-                sm={4}
-                md={3}
-                lg={3}
-                xl={3}
-              >
-                <Box>
-                  <FileButton object={obj} />
-                </Box>
-              </Grid>
-            ))
-          }
-
-            </Grid>
-          </Box>
-        ) : null}
-
-        {folderObjects.length ? (
-          <Box>
-            <Typography variant="subtitle1" component="h6">{t('Folders')}</Typography>
+        {groupedObjects.map((group) => (
+          <Box key={group.title}>
+            <Typography variant="subtitle1" component="h6">{group.title}</Typography>
 
             <Grid container spacing={2}>
               {
-            folderObjects.map((obj) => (
-              <Grid
-                key={obj.name || obj.prefix}
-                item
-                xs={12}
-                sm={4}
-                md={3}
-                lg={3}
-                xl={3}
-              >
-                <Box>
-                  <FileButton object={obj} />
-                </Box>
-              </Grid>
-            ))
-          }
+          group.objects.map((obj) => (
+            <Grid
+              key={obj.name || obj.prefix}
+              item
+              xs={12}
+              sm={4}
+              md={3}
+              lg={3}
+              xl={3}
+            >
+              <Box>
+                <FileButton object={obj} />
+              </Box>
+            </Grid>
+          ))
+        }
 
             </Grid>
           </Box>
-        ) : null}
-
-        {fileObjects.length ? (
-          <Box>
-            <Typography variant="subtitle1" component="h6">{t('Files')}</Typography>
-            <Grid container spacing={2}>
-              {
-              fileObjects.map((obj) => (
-                <Grid
-                  key={obj.name || obj.prefix}
-                  item
-                  xs={12}
-                  sm={4}
-                  md={3}
-                  lg={3}
-                  xl={3}
-                >
-                  <Box>
-                    <FileButton object={obj} />
-                  </Box>
-                </Grid>
-              ))
-            }
-
-            </Grid>
-          </Box>
-        ) : null}
+        ))}
 
       </Box>
     </FilesContext.Provider>

@@ -1,14 +1,25 @@
-add a html viewer
-add a html base application holder, running html in a sandboxed iframe
-add a file type resgistry
-add a file and folder move function
-add a link editor
-link display name
-permission control ui
+* add a html viewer
+* add a html base application holder, running html in a sandboxed iframe
+* add a file type resgistry
 
-enhance article editor
+* move open file logic to file manager from button
 
-change rename to absolute path.
++ menu to a single component
 
-ui setting file in user root.
-make different user have different permissions and ui
+/ add a temporary root config context switcher to temporary in as remote folder. or define it in url?
+
+* .s3 file config default value such as endpoint or port.
+
+? resolve url return a list of objects to render breadcrumbs
+
+* add a process bar
+* add a link file and folder  use path
+* enhance article editor
+* enhance image viewer
+* add a link editor also a login window
+* add a .env file in root to manager  ui setting file in user root. permission control ui make different user have different permissions and ui
+
++ add bucket and file version control
+
+? add a recycle bin
+? rename function add a move function which can open a folder selector

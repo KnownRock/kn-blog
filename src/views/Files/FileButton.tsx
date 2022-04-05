@@ -1,5 +1,5 @@
 import {
-  Box, Button, IconButton, Menu, MenuItem,
+  Box, Button, IconButton, Input, Menu, MenuItem,
 } from '@mui/material'
 import Minio from 'minio'
 import { useNavigate } from 'react-router-dom'
@@ -8,9 +8,8 @@ import { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import FileIcon from './FileIcon'
 import {
-  copyFile, removeDir, removeFile, renameFile,
+  copyFile, dir, isExist, removeDir, removeFile, renameFile, renameFolder, stat,
 } from '../../utils/fs'
-import RenameDialog from './RenameDialog'
 import FilesContext from '../../contexts/FilesContext'
 import InfoContext from '../../contexts/InfoContext'
 
@@ -29,21 +28,20 @@ export default function FileButton(
     }
   },
 ) {
+  const { type, displayName: name } = object
+
+  const { info } = useContext(InfoContext)
+  const { refetch } = useContext(FilesContext)
+  const { t } = useTranslation()
   const navigate = useNavigate()
-  const { type } = object
-  const name = object.displayName
-  // object.name?.replace(/\/$/, '')
-  // .replace(/^.*\//, '') || object.prefix?.replace(/\/$/, '').replace(/^.*\//, '')
-  const [openRenameDialog, setOpenRenameDialog] = useState(false)
+
+  // TODO: move this to Info Component
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
 
-  const { info } = useContext(InfoContext)
-  // debugger
-
-  const { refetch } = useContext(FilesContext)
-
-  const { t } = useTranslation()
+  function handleEdit() {
+    navigate(`/text-viewer?path=${object.name}`)
+  }
 
   function handleClick() {
     // console.log(object)
@@ -68,8 +66,80 @@ export default function FileButton(
   }
 
   function handleRename() {
+    let newName = object.name
+
+    info({
+      title: t('Rename'),
+      // content: t('Rename the file or directory'),
+      component: (
+        <Input
+          fullWidth
+          placeholder="New name"
+          defaultValue={object.name}
+          autoFocus
+          onChange={(e) => {
+            newName = e.target.value
+          }}
+        />
+      ),
+    }).then(async () => {
+      if (object.type === 'file' || object.type === 'remote-folder') {
+        if (newName !== object.name) {
+          isExist(newName.replace(/\/$/, '')).then((exist) => {
+            if (exist) {
+              info({
+                title: t('Rename'),
+                content: t('The file or directory already exists'),
+              })
+            } else {
+              renameFile(object.name, newName).then(() => {
+                refetch()
+              })
+            }
+          })
+        }
+      } else if (object.type === 'folder') {
+        if (newName !== object.name) {
+          renameFolder(object.name, newName).then(() => {
+            refetch()
+          })
+        }
+      }
+
+      // dir(newName.replace(/\/$/, '')).then((objects) => {
+      //   // TODO: maybe some overwrite check here, like etag
+      //   if (objects.length > 0 && newName !== object.name) {
+      //     info({
+      //       title: t('Rename'),
+      //       content: t('The directory already exists'),
+      //     })
+      //   } else {
+      //     if (newName === object.name) {
+      //       return
+      //     }
+
+      //     renameFile(object.name, newName).then(() => {
+      //       refetch()
+      //     })
+      //   }
+      // })
+
+      // stat(`/${newName}`).then(async (st) => {
+      //   if (st && object.name !== newName) {
+      //     info({
+      //       title: t('Rename'),
+      //       content: t('The file or directory already exists'),
+      //     })
+      //   } else {
+      //     renameFile(object.name, newName).then(() => {
+      //       refetch()
+      //     })
+      //   }
+      // })
+    })
+
     // renameFile(object.name, object.name.replace(/^.*\//, ''))
-    setOpenRenameDialog(true)
+    // setOpenRenameDialog(true)
   }
 
   function handleMore(evt: React.MouseEvent<HTMLAnchorElement>) {
@@ -105,14 +175,14 @@ export default function FileButton(
 
   return (
     <>
-      {openRenameDialog
+      {/* {openRenameDialog
       && (
       <RenameDialog
         object={object}
         open={openRenameDialog}
         setOpen={setOpenRenameDialog}
       />
-      )}
+      )} */}
       {anchorEl && (
         <Menu
           id="basic-menu"
@@ -133,8 +203,9 @@ export default function FileButton(
             {t('Delete')}
 
           </MenuItem>
-
+          <MenuItem onClick={handleEdit}>{t('Edit')}</MenuItem>
           <MenuItem onClick={handleRename}>{t('Rename')}</MenuItem>
+
           {/* <MenuItem onClick={handleClose}>{t('Download')}</MenuItem> */}
         </Menu>
       )}
