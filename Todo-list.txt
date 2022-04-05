@@ -25,3 +25,7 @@
 ? rename function add a move function which can open a folder selector
 ? getBucketPolicy to change ui
 ? setBucketPolicy to make a new user
+
+
+? divide the file manager and other viewer and build each one and save in s3
+  every app as a app
