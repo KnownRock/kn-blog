@@ -239,6 +239,18 @@ export async function getFile(fsPath:string) {
   })
 }
 
+export async function getFileAsDataUrl(fsPath:string):Promise<string> {
+  const stream = await getFile(fsPath)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      resolve(reader.result as string)
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(stream)
+  })
+}
+
 export async function getFileAsText(fsPath:string): Promise<string> {
   const object = await getFile(fsPath)
   return new Promise((resolve, reject) => {

@@ -1,14 +1,13 @@
 import {
-  Box, Button, IconButton, Input, Menu, MenuItem,
+  Box, Button, Divider, IconButton, Input, Menu, MenuItem,
 } from '@mui/material'
-import Minio from 'minio'
 import { useNavigate } from 'react-router-dom'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import FileIcon from './FileIcon'
 import {
-  copyFile, dir, isExist, removeDir, removeFile, renameFile, renameFolder, stat,
+  getFileAsDataUrl, isExist, removeDir, removeFile, renameFile, renameFolder,
 } from '../../utils/fs'
 import FilesContext from '../../contexts/FilesContext'
 import InfoContext from '../../contexts/InfoContext'
@@ -50,7 +49,6 @@ export default function FileButton(
       navigate(`/files${object.prefix.startsWith('/') ? '' : '/'}${object.prefix}`)
     }
     if (type === 'file') {
-      console.log(object)
       const contnetType = object.metadata['content-type']
       if (contnetType.startsWith('image/')) {
         navigate(`/image-viewer?path=${object.name}`)
@@ -65,12 +63,20 @@ export default function FileButton(
     }
   }
 
+  async function handleDownload() {
+    const dataUrl = await getFileAsDataUrl(object.name)
+    const link = document.createElement('a')
+
+    link.href = dataUrl
+    link.download = object.name
+    link.click()
+  }
+
   function handleRename() {
     let newName = object.name
 
     info({
       title: t('Rename'),
-      // content: t('Rename the file or directory'),
       component: (
         <Input
           fullWidth
@@ -100,46 +106,21 @@ export default function FileButton(
         }
       } else if (object.type === 'folder') {
         if (newName !== object.name) {
-          renameFolder(object.name, newName).then(() => {
-            refetch()
+          isExist(newName.replace(/\/$/, '')).then((exist) => {
+            if (exist) {
+              info({
+                title: t('Rename'),
+                content: t('The file or directory already exists'),
+              })
+            } else {
+              renameFolder(object.name, newName).then(() => {
+                refetch()
+              })
+            }
           })
         }
       }
-
-      // dir(newName.replace(/\/$/, '')).then((objects) => {
-      //   // TODO: maybe some overwrite check here, like etag
-      //   if (objects.length > 0 && newName !== object.name) {
-      //     info({
-      //       title: t('Rename'),
-      //       content: t('The directory already exists'),
-      //     })
-      //   } else {
-      //     if (newName === object.name) {
-      //       return
-      //     }
-
-      //     renameFile(object.name, newName).then(() => {
-      //       refetch()
-      //     })
-      //   }
-      // })
-
-      // stat(`/${newName}`).then(async (st) => {
-      //   if (st && object.name !== newName) {
-      //     info({
-      //       title: t('Rename'),
-      //       content: t('The file or directory already exists'),
-      //     })
-      //   } else {
-      //     renameFile(object.name, newName).then(() => {
-      //       refetch()
-      //     })
-      //   }
-      // })
     })
-
-    // renameFile(object.name, object.name.replace(/^.*\//, ''))
-    // setOpenRenameDialog(true)
   }
 
   function handleMore(evt: React.MouseEvent<HTMLAnchorElement>) {
@@ -175,14 +156,6 @@ export default function FileButton(
 
   return (
     <>
-      {/* {openRenameDialog
-      && (
-      <RenameDialog
-        object={object}
-        open={openRenameDialog}
-        setOpen={setOpenRenameDialog}
-      />
-      )} */}
       {anchorEl && (
         <Menu
           id="basic-menu"
@@ -193,10 +166,12 @@ export default function FileButton(
           MenuListProps={{
             'aria-labelledby': 'basic-button',
           }}
+
         >
           <MenuItem
             sx={{
               color: 'red',
+              width: 320,
             }}
             onClick={handleDelete}
           >
@@ -205,8 +180,9 @@ export default function FileButton(
           </MenuItem>
           <MenuItem onClick={handleEdit}>{t('Edit')}</MenuItem>
           <MenuItem onClick={handleRename}>{t('Rename')}</MenuItem>
+          <Divider />
+          <MenuItem onClick={handleDownload}>{t('Download')}</MenuItem>
 
-          {/* <MenuItem onClick={handleClose}>{t('Download')}</MenuItem> */}
         </Menu>
       )}
 

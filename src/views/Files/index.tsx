@@ -2,15 +2,10 @@ import {
   Box, Button, ButtonGroup, Typography,
 } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import {
-  useCallback,
-  useContext,
-  useEffect, useMemo, useState,
-} from 'react'
+import { useMemo } from 'react'
 
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useDropzone } from 'react-dropzone'
 import TopBar from '../../components/TopBar'
 import FileBreadcrumbs from '../../components/FileBreadcrumbs'
 import FileButton from './FileButton'
@@ -19,7 +14,6 @@ import { uploadFile as uploadFileToClient } from '../../utils/fs'
 
 import FilesContext from '../../contexts/FilesContext'
 
-import InfoContext from '../../contexts/InfoContext'
 import NewFileButton from './NewFileButton'
 
 function Files() {
@@ -36,17 +30,13 @@ function Files() {
 
   const typedObjects = useMemo(() => {
     if (objects) {
-      console.log(objects)
-
       return objects.map((object) => ({
         ...object,
-        // type: object.name?.endsWith('/') || object.prefix?.endsWith('/') ? 'folder' : 'file',
       }))
     }
     return []
   }, [objects])
 
-  const { info } = useContext(InfoContext)
   const remoteFolderObjects = useMemo(() => typedObjects.filter((object) => object.type === 'remote-folder'), [typedObjects])
   const folderObjects = useMemo(() => typedObjects.filter((object) => object.type === 'folder'), [typedObjects])
   const fileObjects = useMemo(() => typedObjects.filter((object) => object.type === 'file'), [typedObjects])
@@ -103,11 +93,12 @@ function Files() {
         >
           <ButtonGroup variant="contained" aria-label="outlined primary button group">
             <NewFileButton path={path || ''} />
-            <Button variant="contained" onClick={uploadFolder}>
-              {t('Upload folder')}
-            </Button>
+
             <Button variant="contained" onClick={uploadFile}>
               {t('Upload')}
+            </Button>
+            <Button variant="contained" onClick={uploadFolder}>
+              {t('Upload folder')}
             </Button>
           </ButtonGroup>
         </Box>

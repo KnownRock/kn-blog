@@ -7,7 +7,7 @@ import {
   DraftEditorCommand, Editor, EditorState, RichUtils,
 } from 'draft-js'
 import {
-  Box, Button, Card, IconButton,
+  Box, Card, IconButton,
 } from '@mui/material'
 
 import FormatBold from '@mui/icons-material/FormatBold'
@@ -71,6 +71,8 @@ function ArticleEditor() {
   }, [])
 
   const onSelectionChanged = (editorState: EditorState) => {
+    editorState.getSelection()
+
     const anchorNode = document.getSelection()?.anchorNode
     if (anchorNode && editorContainer.current?.contains(anchorNode)) {
       const rect:{

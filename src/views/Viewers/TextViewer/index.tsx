@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react'
+import Editor from '@monaco-editor/react'
 import { Fab } from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save'
 import { useGetFile } from '../../../hooks/fs-hooks'
@@ -27,7 +27,6 @@ function Viewer({ path }: { path: string }) {
   const [text, setText] = useState('')
 
   const { object, loading, error } = useGetFile(path || '')
-  console.log('object', object)
 
   useEffect(() => {
     if (object) {
@@ -41,8 +40,6 @@ function Viewer({ path }: { path: string }) {
 
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error...</div>
-
-  console.log('text', text)
 
   const language = extLanguageDict[path?.match(/\.([^.]*)$/)?.[1] ?? ''] ?? 'text'
 
@@ -59,7 +56,7 @@ function Viewer({ path }: { path: string }) {
         height="100%"
         value={text}
         defaultLanguage={language}
-        onChange={(newValue, e) => {
+        onChange={(newValue) => {
           setText(newValue ?? '')
         }}
       />
