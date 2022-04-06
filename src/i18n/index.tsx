@@ -16,6 +16,10 @@ i18n
           'folder.delete.description': 'Are you sure you want to delete this folder?',
           'files.newFile.title': 'New file',
           'files.newFile.placeholder': 'File name',
+          'login.s3.url': 'S3 URL',
+          'login.s3.backet': 'S3 Bucket',
+          'login.s3.accessKey':'S3 Access Key',
+          'login.s3.secretKey':'S3 Secret Key',
         },
       },
       cn: {
@@ -45,6 +49,12 @@ i18n
           Error: '错误',
           Loading: '加载中',
           Refresh: '刷新',
+          'login.s3.url': 'S3 网址',
+          'login.s3.backet': 'S3 存储捅',
+          'login.s3.accessKey':'S3 访问密钥',
+          'login.s3.secretKey':'S3 秘密密钥',
+          'Login':'登录',
+
         },
       },
     },

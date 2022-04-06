@@ -3,7 +3,9 @@ import React from 'react'
 type Options = {
   title?: string
   content?: string
-  component?: React.ReactNode
+  component?: React.ReactNode,
+  noClose?: boolean,
+  isOk?:()=>boolean
 }
 
 export default React.createContext({

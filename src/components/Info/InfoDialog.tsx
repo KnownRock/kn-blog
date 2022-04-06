@@ -22,6 +22,7 @@ export default function AlertDialog({
     content?: string,
     component?: React.ReactNode,
     noClose?: boolean,
+    isOk?:()=>boolean,
   }
 }) {
   const handleClose = () => {
@@ -30,8 +31,10 @@ export default function AlertDialog({
     proms.reject('cancel')
   }
   const handleOk = () => {
-    setOpen(false)
-    proms.resolve('ok')
+    if (!options?.isOk || options.isOk()) {
+      setOpen(false)
+      proms.resolve('ok')
+    }
   }
   const { t } = useTranslation()
 
@@ -63,7 +66,7 @@ export default function AlertDialog({
       ) : null}
 
       <DialogActions>
-        <Button onClick={handleClose}>{t('Cancel')}</Button>
+        {!options?.noClose && <Button onClick={handleClose}>{t('Cancel')}</Button>}
         <Button onClick={handleOk} autoFocus>
           {t('Ok')}
         </Button>
