@@ -188,12 +188,12 @@ export default function FileButton(
 
       <Button
         onClick={() => handleClick()}
+        variant="outlined"
         sx={{
-          borderRadius: 2,
-          border: '1px solid',
+          // borderRadius: 2,
           width: '100%',
-          // margin: 2,
         }}
+        startIcon={<FileIcon type={type} />}
       >
 
         <Box sx={{
@@ -205,9 +205,6 @@ export default function FileButton(
           maxWidth: '100%',
         }}
         >
-          <Box>
-            <FileIcon type={type} />
-          </Box>
           <Box sx={{
             textTransform: 'none',
             fontSize: '0.8rem',

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import Minio from 'minio'
 import { dir, getFile } from '../utils/fs'
 
 export function useDir(fsPath: string) {
@@ -10,10 +9,14 @@ export function useDir(fsPath: string) {
 
   const refetch = () => {
     setLoading(true)
+    setError(false)
     setRandom(Math.random())
   }
 
   useEffect(() => {
+    setError(false)
+    setLoading(true)
+
     dir(fsPath)
       .then(setObjects)
       .catch(() => setError(true))
@@ -33,10 +36,14 @@ export function useGetFile(fsPath: string) {
 
   const refetch = () => {
     setLoading(true)
+    setError(false)
     setRandom(Math.random())
   }
 
   useEffect(() => {
+    setError(false)
+    setLoading(true)
+
     getFile(fsPath)
       .then(setObject)
       .catch(() => setError(true))

@@ -7,7 +7,8 @@ import mime from 'mime'
 declare const minio: typeof Minio
 
 const minioClient1 = new minio.Client({
-  endPoint: '192.168.199.252',
+  // endPoint: '192.168.199.252',
+  endPoint: '127.0.0.1',
   port: 9000,
   useSSL: false,
   accessKey: 'minioadmin',
@@ -60,7 +61,7 @@ export async function resolvePath(path: string, fsPath = '', bucket = 'private',
   let linkFileIndex = -1
 
   paths.some((p, index) => {
-    if (p.match(/!\[[^]+]\.s3/)) {
+    if (p.match(/^[^.]+.s3$/)) {
       linkFileIndex = index
 
       return true
@@ -157,17 +158,7 @@ async function listObjects(
   return objs
 }
 
-type DiredFile = {
-  name:string,
-  type:string,
-  displayName:string,
-  prefix:string,
-  metadata:Minio.ItemBucketMetadata
-  // size:number,
-  // lastModified:string,
-}
-
-export async function dir(fsPath:string, recursive = false) :Promise<Array<DiredFile>> {
+export async function dir(fsPath:string, recursive = false) :Promise<Array<FileInfo>> {
   const {
     bucket, path, minioClient, fsPath: linkFilePath,
   } = await resolvePath(fsPath)
@@ -187,7 +178,7 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<Dired
           displayName: `${displayName}`,
           prefix: `${linkFilePath}${obj.name}/`,
           metadata: obj.metadata,
-        } as DiredFile
+        } as FileInfo
       }
 
       return {
@@ -196,7 +187,7 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<Dired
         type: 'file',
         displayName: obj.name.split('/').pop(),
         metadata: obj.metadata,
-      } as DiredFile
+      } as FileInfo
     }
     if (obj.prefix) {
       return {
@@ -206,7 +197,7 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<Dired
         displayName: obj.prefix && obj.prefix.replace(/\/$/, '').replace(/^.*\//, ''),
         type: 'folder',
         metadata: obj.metadata,
-      } as DiredFile
+      } as FileInfo
     }
 
     return {
@@ -214,8 +205,8 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<Dired
       type: 'unknown',
       displayName: obj.name,
       metadata: obj.metadata,
-
-    } as DiredFile
+      prefix: '',
+    } as FileInfo
   })
 }
 

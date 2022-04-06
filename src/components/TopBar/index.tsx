@@ -33,6 +33,8 @@ function ResponsiveAppBar({ title, withBack, children }: Props) {
     navigate(-1)
   }
 
+  return <div />
+
   return (
     <AppBar
       position="sticky"
