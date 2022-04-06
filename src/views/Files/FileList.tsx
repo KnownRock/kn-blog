@@ -39,6 +39,7 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
       sx={{
         paddingLeft: 2,
         paddingRight: 2,
+        flexGrow: 1,
       }}
     >
       {groupedObjects.map((group) => (

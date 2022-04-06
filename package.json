@@ -12,6 +12,7 @@
     "@draft-js-plugins/linkify": "^4.2.0",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
+    "@fingerprintjs/fingerprintjs": "^3.3.3",
     "@monaco-editor/react": "^4.4.1",
     "@mui/icons-material": "^5.2.5",
     "@mui/lab": "^5.0.0-alpha.75",

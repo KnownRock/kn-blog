@@ -21,9 +21,11 @@ export default function AlertDialog({
     title?: string,
     content?: string,
     component?: React.ReactNode,
+    noClose?: boolean,
   }
 }) {
   const handleClose = () => {
+    if (options?.noClose) return
     setOpen(false)
     proms.reject('cancel')
   }

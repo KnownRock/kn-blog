@@ -1,15 +1,16 @@
-import { Box, Button, ButtonGroup } from '@mui/material'
+import { Box } from '@mui/material'
 import { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
+import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import FileBreadcrumbs from '../../components/FileBreadcrumbs'
 import { useDir } from '../../hooks/fs-hooks'
-import { uploadFile as uploadFileToClient } from '../../utils/fs'
 import FilesContext from '../../contexts/FilesContext'
-import NewFileButton from './NewFileButton'
 import LoadingFileList from './LoadingFileList'
+import LoadingOperationsButton from './LoadingOperationsButton'
 
 export default function Files({ path }: { path: string; }) {
-  const { t } = useTranslation()
+  // FingerprintJS.load().then((fp) => fp.get()).then((result) => {
+  //   console.log(result)
+  // })
 
   const {
     objects: objs, loading, error, refetch,
@@ -18,15 +19,6 @@ export default function Files({ path }: { path: string; }) {
   const contextValue = useMemo(() => ({
     refetch,
   }), [refetch])
-
-  const uploadFile = async () => {
-    await uploadFileToClient(path)
-    refetch()
-  }
-  const uploadFolder = async () => {
-    await uploadFileToClient(path, true)
-    refetch()
-  }
 
   return (
     <FilesContext.Provider value={contextValue}>
@@ -47,16 +39,7 @@ export default function Files({ path }: { path: string; }) {
           alignItems: 'center',
         }}
         >
-          <ButtonGroup variant="contained" aria-label="outlined primary button group">
-            <NewFileButton path={path || ''} />
-
-            <Button variant="contained" onClick={uploadFile}>
-              {t('Upload')}
-            </Button>
-            <Button variant="contained" onClick={uploadFolder}>
-              {t('Upload folder')}
-            </Button>
-          </ButtonGroup>
+          <LoadingOperationsButton path={path} loading={loading} error={error} />
         </Box>
 
       </Box>
