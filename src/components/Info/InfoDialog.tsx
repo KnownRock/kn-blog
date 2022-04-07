@@ -22,7 +22,7 @@ export default function AlertDialog({
     content?: string,
     component?: React.ReactNode,
     noClose?: boolean,
-    isOk?:()=>boolean,
+    isOk?: ()=>Promise<boolean>,
   }
 }) {
   const handleClose = () => {
@@ -30,8 +30,8 @@ export default function AlertDialog({
     setOpen(false)
     proms.reject('cancel')
   }
-  const handleOk = () => {
-    if (!options?.isOk || options.isOk()) {
+  const handleOk = async () => {
+    if (!options?.isOk || await options.isOk()) {
       setOpen(false)
       proms.resolve('ok')
     }

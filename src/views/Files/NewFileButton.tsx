@@ -1,6 +1,6 @@
 import { Button, Input } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
-import { useContext } from 'react'
+import React, { Component, useContext } from 'react'
 import { useTranslation } from 'react-i18next'
 import { newFile } from '../../utils/fs'
 import FilesContext from '../../contexts/FilesContext'
@@ -27,16 +27,23 @@ export default function NewFile({ path }: { path: string; }) {
           placeholder={t('files.newFile.placeholder')}
         />
       ),
-    }).then(async () => {
-      newFile(`/${fileName}`).then(() => {
-        refetch()
+    }).then(
+      () => newFile(`${fileName}`),
+    ).then(() => {
+      refetch()
+    }).catch((e) => {
+      info({
+        title: t('files.error'),
+        content: t(e.message),
       })
     })
   }
 
   return (
+
     <Button variant="contained" onClick={handleNewFile}>
       <AddIcon />
     </Button>
+
   )
 }

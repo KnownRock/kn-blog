@@ -98,8 +98,11 @@ export default function FileButton(
                 content: t('The file or directory already exists'),
               })
             } else {
-              renameFile(object.name, newName).then(() => {
-                refetch()
+              renameFile(object.name, newName).then(() => refetch()).catch((e) => {
+                info({
+                  title: t('files.error'),
+                  content: t(e.message),
+                })
               })
             }
           })
@@ -113,8 +116,11 @@ export default function FileButton(
                 content: t('The file or directory already exists'),
               })
             } else {
-              renameFolder(object.name, newName).then(() => {
-                refetch()
+              renameFolder(object.name, newName).then(() => refetch()).catch((e) => {
+                info({
+                  title: t('files.error'),
+                  content: t(e.message),
+                })
               })
             }
           })
@@ -133,8 +139,11 @@ export default function FileButton(
         title: t('folder.delete.title'),
         content: t('folder.delete.description'),
       }).then(() => {
-        removeDir(object.prefix).then(() => {
-          refetch()
+        removeDir(object.prefix).then(() => refetch()).catch((e) => {
+          info({
+            title: t('files.error'),
+            content: t(e.message),
+          })
         })
       })
     } else {
@@ -142,8 +151,11 @@ export default function FileButton(
         title: t('file.delete.title'),
         content: t('file.delete.description'),
       }).then(() => {
-        removeFile(object.name).then(() => {
-          refetch()
+        removeFile(object.name).then(() => refetch()).catch((e) => {
+          info({
+            title: t('files.error'),
+            content: t(e.message),
+          })
         })
       })
     }

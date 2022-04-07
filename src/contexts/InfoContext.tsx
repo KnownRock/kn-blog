@@ -5,7 +5,7 @@ type Options = {
   content?: string
   component?: React.ReactNode,
   noClose?: boolean,
-  isOk?:()=>boolean
+  isOk?:()=>Promise<boolean>,
 }
 
 export default React.createContext({

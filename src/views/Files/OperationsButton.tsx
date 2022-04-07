@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { uploadFile as uploadFileToClient } from '../../utils/fs'
 import FilesContext from '../../contexts/FilesContext'
 import NewFileButton from './NewFileButton'
+import InfoContext from '../../contexts/InfoContext'
 
 export default function OperationButton({
   path,
@@ -12,14 +13,27 @@ export default function OperationButton({
 }) {
   const { refetch } = useContext(FilesContext)
   const { t } = useTranslation()
+  const { info } = useContext(InfoContext)
 
   const uploadFile = async () => {
-    await uploadFileToClient(path)
-    refetch()
+    uploadFileToClient(path)
+      .then(() => refetch())
+      .catch((e) => {
+        info({
+          title: t('files.error'),
+          content: t(e.message),
+        })
+      })
   }
   const uploadFolder = async () => {
-    await uploadFileToClient(path, true)
-    refetch()
+    uploadFileToClient(path, true)
+      .then(() => refetch())
+      .catch((e) => {
+        info({
+          title: t('files.error'),
+          content: t(e.message),
+        })
+      })
   }
 
   return (

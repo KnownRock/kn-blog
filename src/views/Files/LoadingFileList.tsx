@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import FilesContext from '../../contexts/FilesContext'
 import FileList from './FileList'
+import FullContainer from './FullContainer'
 
 function LoadingInfo({ loading, error }: { loading: boolean; error: boolean; }) {
   const { t } = useTranslation()
@@ -31,25 +32,6 @@ function LoadingInfo({ loading, error }: { loading: boolean; error: boolean; }) 
     )
   }
   return <Box />
-}
-
-function FullContainer({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <Box style={{
-      flexGrow: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}
-    >
-      {children}
-    </Box>
-  )
 }
 
 export default function LoadingFileList({

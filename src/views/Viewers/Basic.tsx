@@ -4,6 +4,7 @@ import {
 import { useEffect, useState } from 'react'
 import InfoIcon from '@mui/icons-material/Info'
 import TopBar from '../../components/TopBar'
+import { useAutoLogin } from '../../hooks/user-hooks'
 
 function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string }> }) {
   const params = new URLSearchParams(window.location.search)
@@ -11,6 +12,8 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string }> }) {
   const path = params.get('path') ?? ''
 
   const fileName = path.match(/[^/]*$/)?.[0] ?? 'undefined'
+
+  const { loading, success } = useAutoLogin()
 
   return (
     <Box sx={{
@@ -27,7 +30,7 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string }> }) {
         </IconButton>
       </TopBar>
 
-      <FileViewer path={path} />
+      {!loading && <FileViewer path={path} />}
 
     </Box>
   )

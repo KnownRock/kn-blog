@@ -35,3 +35,7 @@
 * move path variable to context of file
 
 * fix folder download
+
++ move all error handler to a main error handler
+
+* move viewers to children and handle url

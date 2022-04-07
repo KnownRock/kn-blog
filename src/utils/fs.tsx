@@ -6,20 +6,42 @@ import mime from 'mime'
 // TODO: make it lazy load
 declare const minio: typeof Minio
 
-const minioClient1 = new minio.Client({
-  // endPoint: '192.168.199.252',
-  endPoint: '127.0.0.1',
-  port: 9000,
-  useSSL: false,
-  accessKey: 'minioadmin',
-  secretKey: 'minioadmin',
-})
+// need to restart vite after change this
+const defaultConfig = {
+  endPoint: import.meta.env.VITE_APP_S3_ENDPOINT, // '127.0.0.1',
+  port: +import.meta.env.VITE_APP_S3_PORT, // 9000,
+  useSSL: import.meta.env.VITE_APP_S3_USE_SSL === 'true',
+  accessKey: import.meta.env.VITE_APP_S3_ACCESS_KEY, // 'minioadmin',
+  secretKey: import.meta.env.VITE_APP_S3_SECRET_KEY, // 'minioadmin',
+
+  bucket: import.meta.env.VITE_APP_S3_BUCKET, // 'private',
+}
+
+let rootBucket = defaultConfig.bucket
+let rootMinioClient:Minio.Client | undefined
+let rootMinioConfig:Minio.ClientOptions | undefined
+
+export async function setConfig(config:typeof defaultConfig) {
+  rootMinioClient = new minio.Client(config)
+  rootBucket = config.bucket
+  rootMinioConfig = config
+}
 
 type ResolvedPath = {
   bucket:string,
   path:string,
   fsPath:string,
+  prefixPath:string,
   minioClient :Minio.Client
+}
+
+export async function testConfig(config:typeof defaultConfig) {
+  const minioClient = new minio.Client(config)
+  try {
+    return await minioClient.bucketExists(config.bucket)
+  } catch (e) {
+    return false
+  }
 }
 
 async function getFileRaw(bucket:string, path:string, minioClient:Minio.Client) {
@@ -56,7 +78,15 @@ async function getFileAsTextRaw(
   })
 }
 
-export async function resolvePath(path: string, fsPath = '', bucket = 'private', minioClient = minioClient1): Promise<ResolvedPath> {
+export async function resolvePath(path: string, fsPath = '', prefixPath = '', bucket = rootBucket, parMinioClient: Minio.Client | undefined = undefined): Promise<ResolvedPath> {
+  let minioClient = parMinioClient
+  if (minioClient === undefined) {
+    if (rootMinioClient === undefined) {
+      rootMinioClient = new minio.Client(defaultConfig)
+    }
+    minioClient = rootMinioClient
+  }
+
   const paths = path.split('/')
   let linkFileIndex = -1
 
@@ -75,12 +105,19 @@ export async function resolvePath(path: string, fsPath = '', bucket = 'private',
     const linkObject = JSON.parse(linkFileText)
     const restPath = paths.slice(linkFileIndex + 1).join('/')
 
-    return resolvePath(restPath, `${fsPath + linkFilePath}/`, linkObject.bucket, minioClient)
+    const newClient = new minio.Client({
+      ...rootMinioConfig,
+      ...linkObject,
+    })
+    const additionalPath:string = linkObject.path ?? ''
+
+    return resolvePath(`${additionalPath}${restPath}`, `${fsPath + linkFilePath}/`, additionalPath, linkObject.bucket, newClient)
   }
   return {
     bucket,
     path,
     fsPath,
+    prefixPath,
     minioClient,
   }
 }
@@ -160,7 +197,7 @@ async function listObjects(
 
 export async function dir(fsPath:string, recursive = false) :Promise<Array<FileInfo>> {
   const {
-    bucket, path, minioClient, fsPath: linkFilePath,
+    bucket, path, minioClient, fsPath: linkFilePath, prefixPath,
   } = await resolvePath(fsPath)
 
   const objs = await listObjects(minioClient, bucket, path, recursive)
@@ -173,7 +210,7 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<FileI
         // displayNameRaw.match(/([^.]+).s3/)?.[1] ?? displayNameRaw
 
         return {
-          name: `${linkFilePath}${obj.name}`,
+          name: `${linkFilePath}${obj.name.replace(new RegExp(`^${prefixPath}`), '')}`,
           type: 'remote-folder',
           displayName: `${displayName}`,
           prefix: `${linkFilePath}${obj.name}/`,
@@ -183,7 +220,7 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<FileI
 
       return {
         // ...obj,
-        name: obj.name && `${linkFilePath}${obj.name}`,
+        name: obj.name && `${linkFilePath}${obj.name.replace(new RegExp(`^${prefixPath}`), '')}`,
         type: 'file',
         displayName: obj.name.split('/').pop(),
         metadata: obj.metadata,
@@ -193,7 +230,7 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<FileI
       return {
         // ...obj,
         name: obj.prefix.replace(/\/$/, ''),
-        prefix: obj.prefix && `${linkFilePath}${obj.prefix}`,
+        prefix: obj.prefix && `${linkFilePath}${obj.prefix.replace(new RegExp(`^${prefixPath}`), '')}`,
         displayName: obj.prefix && obj.prefix.replace(/\/$/, '').replace(/^.*\//, ''),
         type: 'folder',
         metadata: obj.metadata,
@@ -212,7 +249,6 @@ export async function dir(fsPath:string, recursive = false) :Promise<Array<FileI
 
 export async function getFile(fsPath:string) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
-
   const stream = await minioClient.getObject(bucket, path)
 
   return new Promise<Blob>((resolve, reject) => {
@@ -306,9 +342,9 @@ export async function renameFile(fsPath:string, newFsPath:string) {
 export async function renameFolder(fsPath:string, newFsPath:string) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
   const {
-    bucket: newBucket,
+    // bucket: newBucket,
     path: newPath,
-    minioClient: newMinioClient,
+    // minioClient: newMinioClient,
   } = await resolvePath(newFsPath)
   const objects = await listObjects(minioClient, bucket, path, true)
   // TODO: judge if two clients are the same config
