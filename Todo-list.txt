@@ -8,15 +8,15 @@
 
 / add a temporary root config context switcher to temporary in as remote folder. or define it in url?
 
-* .s3 file config default value such as endpoint or port.
+* .s3 file config use default value such as endpoint or port
+* and use parent folder config
 
 ? resolve url return a list of objects to render breadcrumbs
 
-* add a process bar
-* add a link file and folder  use path
+* add a link file use path
 * enhance article editor
 * enhance image viewer
-* add a link editor also a login window
+* add a link editor
 * add a .env file in root to manager  ui setting file in user root. permission control ui make different user have different permissions and ui
 
 + add bucket and file version control
@@ -32,10 +32,10 @@
 
 * Localstorage as a alternative to s3
 
-* move path variable to context of file
-
-* fix folder download
++ fix folder download
 
 + move all error handler to a main error handler
 
 * move viewers to children and handle url
+
+* fix vite global environment variable eslint error
