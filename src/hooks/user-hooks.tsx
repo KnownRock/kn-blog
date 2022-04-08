@@ -5,6 +5,7 @@ import { useState, useEffect, useContext } from 'react'
 import { useTranslation } from 'react-i18next'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import CryptoJS from 'crypto-js'
+import { useNavigate } from 'react-router-dom'
 import InfoContext from '../contexts/InfoContext'
 import { testConfig, setConfig } from '../utils/fs'
 
@@ -36,6 +37,7 @@ function Form<T extends object>({
     displayName: string,
     valid:RegExp,
     type?:string,
+    required?:boolean,
   }>
 
   ,
@@ -66,6 +68,7 @@ function Form<T extends object>({
       {formProps.map((el) => (
         <CustomFormControl key={el.name}>
           <TextField
+            required={el.required ?? false}
             type={el.type ?? 'text'}
             error={errorDict[el.name]}
             id="outlined-error"
@@ -111,7 +114,7 @@ export function useShowLogin() {
       if (show) {
         let form = {
           url: 'http://127.0.0.1:9000',
-          backet: 'private',
+          backet: 'root',
           accessKey: 'minioadmin',
           secretKey: 'minioadmin',
         }
@@ -122,23 +125,28 @@ export function useShowLogin() {
           displayName: string,
           valid:RegExp,
           type?:string,
+          required?:boolean,
         }> = [{
           name: 'url',
           displayName: t('login.s3.url'),
           valid: /^https?:\/\/.+$/,
+          required: true,
         }, {
           name: 'backet',
           displayName: t('login.s3.backet'),
           valid: /^.+$/,
+          required: true,
         }, {
           name: 'accessKey',
           displayName: t('login.s3.accessKey'),
           valid: /^.+$/,
+          required: true,
         }, {
           name: 'secretKey',
           displayName: t('login.s3.secretKey'),
           valid: /^.+$/,
           type: 'password',
+          required: true,
         }]
 
         // https://stackoverflow.com/questions/54155412/error-map-in-missing-props-reactjs-proptypes
@@ -149,6 +157,11 @@ export function useShowLogin() {
           noClose: true,
           async isOk() {
             if (!ok) {
+              info({
+                title: t('Message'),
+                content: t('validate.error'),
+              })
+
               return false
             }
 
@@ -181,6 +194,13 @@ export function useShowLogin() {
             }
 
             const haveBucket = await testConfig(inputConfig)
+            if (!haveBucket) {
+              info({
+                title: t('Message'),
+                content: t('login.s3.error'),
+              })
+              return false
+            }
 
             const key = await getVisitId()
 
@@ -189,7 +209,7 @@ export function useShowLogin() {
 
             localStorage.setItem('.config', encryptedConfig)
 
-            return haveBucket
+            return true
           },
           // content: 'No config file found',
           component: (
@@ -263,6 +283,7 @@ export function useAutoLogin() {
 export function useLogout() {
   const { t } = useTranslation()
   const { info } = useContext(InfoContext)
+  const navigate = useNavigate()
 
   const [showing, setShowing] = useState(false)
 
@@ -273,12 +294,13 @@ export function useLogout() {
         content: t('Logout.content'),
       }).then(() => {
         localStorage.setItem('.config', '')
+        navigate('/files/')
         window.location.reload()
       }).finally(() => {
         setShowing(false)
       })
     }
-  }, [showing, info, t])
+  }, [showing, info, t, navigate])
 
   return {
     logout: () => {

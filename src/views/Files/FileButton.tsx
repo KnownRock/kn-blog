@@ -7,6 +7,8 @@ import { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import FileIcon from './FileIcon'
 import {
+  copyFile,
+  copyFolder,
   getFileAsDataUrl, isExist, removeDir, removeFile, renameFile, renameFolder,
 } from '../../utils/fs'
 import FilesContext from '../../contexts/FilesContext'
@@ -29,7 +31,7 @@ export default function FileButton(
 ) {
   const { type, displayName: name } = object
 
-  const { info } = useContext(InfoContext)
+  const { info, error } = useContext(InfoContext)
   const { refetch } = useContext(FilesContext)
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -72,11 +74,16 @@ export default function FileButton(
     link.click()
   }
 
-  function handleRename() {
+  function handleRenameAndCopyTo(submitType:'Rename' | 'Copy to') {
     let newName = object.name
 
+    const submitFunctions: ((oldPath:string, newPath:string) =>Promise<unknown>)[] = ({
+      Rename: [renameFile, renameFolder],
+      'Copy to': [copyFile, copyFolder],
+    })[submitType]
+
     info({
-      title: t('Rename'),
+      title: t(submitType),
       component: (
         <Input
           fullWidth
@@ -94,16 +101,13 @@ export default function FileButton(
           isExist(newName.replace(/\/$/, '')).then((exist) => {
             if (exist) {
               info({
-                title: t('Rename'),
+                title: t(submitType),
                 content: t('The file or directory already exists'),
               })
             } else {
-              renameFile(object.name, newName).then(() => refetch()).catch((e) => {
-                info({
-                  title: t('files.error'),
-                  content: t(e.message),
-                })
-              })
+              submitFunctions[0](object.name, newName)
+                .then(() => refetch())
+                .catch(error)
             }
           })
         }
@@ -112,16 +116,13 @@ export default function FileButton(
           isExist(newName.replace(/\/$/, '')).then((exist) => {
             if (exist) {
               info({
-                title: t('Rename'),
+                title: t(submitType),
                 content: t('The file or directory already exists'),
               })
             } else {
-              renameFolder(object.name, newName).then(() => refetch()).catch((e) => {
-                info({
-                  title: t('files.error'),
-                  content: t(e.message),
-                })
-              })
+              submitFunctions[1](object.name, newName)
+                .then(() => refetch())
+                .catch(error)
             }
           })
         }
@@ -140,10 +141,7 @@ export default function FileButton(
         content: t('folder.delete.description'),
       }).then(() => {
         removeDir(object.prefix).then(() => refetch()).catch((e) => {
-          info({
-            title: t('files.error'),
-            content: t(e.message),
-          })
+          error(e)
         })
       })
     } else {
@@ -152,10 +150,7 @@ export default function FileButton(
         content: t('file.delete.description'),
       }).then(() => {
         removeFile(object.name).then(() => refetch()).catch((e) => {
-          info({
-            title: t('files.error'),
-            content: t(e.message),
-          })
+          error(e)
         })
       })
     }
@@ -190,8 +185,12 @@ export default function FileButton(
             {t('Delete')}
 
           </MenuItem>
+
           <MenuItem onClick={handleEdit}>{t('Edit')}</MenuItem>
-          <MenuItem onClick={handleRename}>{t('Rename')}</MenuItem>
+          <MenuItem onClick={() => handleRenameAndCopyTo('Rename')}>{t('Rename')}</MenuItem>
+          <MenuItem onClick={() => handleRenameAndCopyTo('Copy to')}>{t('Copy to')}</MenuItem>
+          <MenuItem onClick={() => handleRenameAndCopyTo('Rename')}>{t('Delete')}</MenuItem>
+
           <Divider />
           <MenuItem onClick={handleDownload}>{t('Download')}</MenuItem>
 

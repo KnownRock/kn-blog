@@ -2,7 +2,6 @@ import { useContext, useEffect, useState } from 'react'
 import Editor from '@monaco-editor/react'
 import { Fab } from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save'
-import { useTranslation } from 'react-i18next'
 import { useGetFile } from '../../../hooks/fs-hooks'
 import Basic from '../Basic'
 import { saveTextFile } from '../../../utils/fs'
@@ -27,10 +26,9 @@ const extLanguageDict: { [key: string]: string } = {
 function Viewer({ path }: { path: string }) {
   // debugger
   const [text, setText] = useState('')
-  const { t } = useTranslation()
 
   const { object, loading, error } = useGetFile(path || '')
-  const { error: infoError, notify } = useContext(InfoContext)
+  const { error: infoError } = useContext(InfoContext)
   useEffect(() => {
     if (object) {
       const reader = new FileReader()
@@ -47,9 +45,7 @@ function Viewer({ path }: { path: string }) {
   const language = extLanguageDict[path?.match(/\.([^.]*)$/)?.[1] ?? ''] ?? 'text'
 
   const handleSave = () => {
-    saveTextFile(path, text).then(() => notify({
-      message: t('File saved'),
-    })).catch((e) => {
+    saveTextFile(path, text).catch((e) => {
       infoError(e)
     })
   }

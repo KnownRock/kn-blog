@@ -1,3 +1,4 @@
+import { OptionsObject } from 'notistack'
 import React from 'react'
 
 type Options = {
@@ -10,7 +11,7 @@ type Options = {
 
 type NotificationOptions = {
   message?: string,
-  timeout?: number,
+  options?:OptionsObject
 }
 
 export default React.createContext({
@@ -24,8 +25,7 @@ export default React.createContext({
     rej(e)
   }),
 
-  notify: (opts:NotificationOptions) => new Promise((res, rej) => {
-    const e = new Error(`You must implement confirm function.[${JSON.stringify(opts)}]`)
-    rej(e)
-  }),
+  notify: (opts:NotificationOptions) => {
+
+  },
 })

@@ -5,7 +5,6 @@ import mime from 'mime'
 // move to global script to use minio sdk in vite
 // TODO: make it lazy load
 declare const minio: typeof Minio
-
 // need to restart vite after change this
 const defaultConfig = {
   endPoint: import.meta.env.VITE_APP_S3_ENDPOINT, // '127.0.0.1',
@@ -110,7 +109,6 @@ export async function resolvePath(path: string, fsPath = '', prefixPath = '', bu
       ...linkObject,
     })
     const additionalPath:string = linkObject.path ?? ''
-
     return resolvePath(`${additionalPath}${restPath}`, `${fsPath + linkFilePath}/`, additionalPath, linkObject.bucket, newClient)
   }
   return {
@@ -310,9 +308,9 @@ export async function removeFile(
   return minioClient.removeObject(bucket, path)
 }
 
-// TODO: cross bucket copy
 export async function copyFile(fsPath:string, newFsPath:string) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
+  // TODO: copy file between two different clients.
   const { bucket: newBucket, path: newPath } = await resolvePath(newFsPath)
   const conds = new minio.CopyConditions()
   return new Promise((resolve, reject) => {
@@ -326,7 +324,22 @@ export async function copyFile(fsPath:string, newFsPath:string) {
   })
 }
 
-// TODO: recursive delete all linked files
+export async function copyFolder(fsPath:string, newFsPath:string) {
+  const { bucket, path, minioClient } = await resolvePath(fsPath)
+  const {
+    // bucket: newBucket,
+    path: newPath,
+    // minioClient: newMinioClient,
+  } = await resolvePath(newFsPath)
+  const objects = await listObjects(minioClient, bucket, path, true)
+  // TODO: judge if two clients are the same config
+  return Promise.all(objects.map((obj) => {
+    const newObjName = obj.name.replace(new RegExp(`^${path}`), newPath)
+    return copyFile(`${obj.name}`, `${newObjName}`)
+  }))
+}
+
+// TODO: recursive delete all linked files maybe?
 export async function removeDir(fsPath:string) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
 

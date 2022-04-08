@@ -10,6 +10,7 @@ import ImageViewer from './views/Viewers/ImageViewer'
 import TextViewer from './views/Viewers/TextViewer'
 import VideoViewer from './views/Viewers/VideoViewer'
 import Info from './components/Info'
+import ArticleViewer from './views/Viewers/ArticleViewer'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/image-viewer" element={<ImageViewer />} />
         <Route path="/text-viewer" element={<TextViewer />} />
         <Route path="/video-viewer" element={<VideoViewer />} />
+        <Route path="/article-viewer" element={<ArticleViewer />} />
         <Route path="me" element={3} />
         <Route path="/files/*" element={<Files />} />
       </Routes>

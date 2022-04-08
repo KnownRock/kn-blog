@@ -13,26 +13,20 @@ export default function OperationButton({
 }) {
   const { refetch } = useContext(FilesContext)
   const { t } = useTranslation()
-  const { info } = useContext(InfoContext)
+  const { error } = useContext(InfoContext)
 
   const uploadFile = async () => {
     uploadFileToClient(path)
       .then(() => refetch())
       .catch((e) => {
-        info({
-          title: t('files.error'),
-          content: t(e.message),
-        })
+        error(e)
       })
   }
   const uploadFolder = async () => {
     uploadFileToClient(path, true)
       .then(() => refetch())
       .catch((e) => {
-        info({
-          title: t('files.error'),
-          content: t(e.message),
-        })
+        error(e)
       })
   }
 

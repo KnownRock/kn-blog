@@ -7,7 +7,7 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import { useTranslation } from 'react-i18next'
 
-export default function AlertDialog({
+export default function InfoDialog({
   open, setOpen, proms,
   options,
 }:{
@@ -74,9 +74,6 @@ export default function AlertDialog({
     </Dialog>
   )
 }
-AlertDialog.defaultProps = {
-  options: {
-    title: '',
-    content: '',
-  },
+InfoDialog.defaultProps = {
+  options: null,
 }

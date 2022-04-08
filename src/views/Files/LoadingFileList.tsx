@@ -3,6 +3,7 @@ import {
 } from '@mui/material'
 import { useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Debounce from '../../components/Debounce'
 import FilesContext from '../../contexts/FilesContext'
 import FileList from './FileList'
 import FullContainer from './FullContainer'
@@ -41,33 +42,26 @@ export default function LoadingFileList({
   error: boolean;
   objects: Array<FileInfo>;
 }) {
-  // TODO: make better transition such as debounce
-  const [isShowing, setIsShowing] = useState(false)
+  return (
+    <Debounce
+      loading={loading}
+      error={error}
+      loadingChildren={(
+        <>
+          <LinearProgress />
+          <FullContainer>
+            <LoadingInfo loading={loading} error={error} />
+          </FullContainer>
+        </>
+      )}
+      errorChildren={(
+        <FullContainer>
+          <LoadingInfo loading={loading} error={error} />
+        </FullContainer>
+      )}
 
-  useEffect(() => {
-    // TODO: move time to .env
-    setTimeout(() => {
-      setIsShowing(true)
-    }, 200)
-  }, [loading])
-
-  if (isShowing && loading && !objects.length) {
-    return (
-      <LinearProgress />
-
-    // <FullContainer>
-    //   {/* <LoadingInfo loading={loading} error={error} /> */}
-    //   <CircularProgress />
-    // </FullContainer>
-    )
-  }
-  if (isShowing && error) {
-    return (
-      <FullContainer>
-        <LoadingInfo loading={loading} error={error} />
-      </FullContainer>
-    )
-  }
-
-  return <FileList objects={objects} />
+    >
+      <FileList objects={objects} />
+    </Debounce>
+  )
 }

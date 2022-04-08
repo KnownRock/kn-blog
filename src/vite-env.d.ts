@@ -10,5 +10,4 @@ interface ImportMetaEnv {
   readonly VITE_APP_S3_SECRET_KEY: string,
   readonly VITE_APP_S3_ENDPOINT: string,
   readonly VITE_APP_S3_PORT: string,
-
 }
