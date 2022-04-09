@@ -1,0 +1,52 @@
+* add a html viewer
+* add a html base application holder, running html in a sandboxed iframe
+* add a file type resgistry
+
+* move open file logic to file manager from button
+
++ menu to a single component
+
+/ add a temporary root config context switcher to temporary in as remote folder. or define it in url?
+
+* .s3 file config use default value such as endpoint or port
+* and use parent folder config
+
+? resolve url return a list of objects to render breadcrumbs
+
+* add a link file use path
+* enhance article editor
+* enhance image viewer
+* add a link editor
+* add a .env file in root to manager  ui setting file in user root. permission control ui make different user have different permissions and ui
+
++ add bucket and file version control
+
+? add a recycle bin
+? rename function add a move function which can open a folder selector
+? getBucketPolicy to change ui
+? setBucketPolicy to make a new user
+
+
+? divide the file manager and other viewer and build each one and save in s3
+  every app as a app or handle other application in file manager?
+
+* Localstorage as a alternative to s3
+
++ fix folder download
+
++ move all error handler to a main error handler
+
+* move viewers to children and handle url
+
+* fix vite global environment variable eslint error
+
+
+
+
+** move more button to the one of params and remove openType
+** move menu to info context
+** edit notify to one instance
+** use path lib to resolve path
+** fix filecontext import name
+** optimization path resolve process
+** unify path handler

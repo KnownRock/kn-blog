@@ -20,6 +20,12 @@ export default function Theme(
       },
       palette: {
         mode,
+        primary: {
+          main: '#5c6bc0',
+        },
+        main: {
+          background: 'rgba(255,255,255,.93)',
+        },
       },
 
     },
@@ -28,6 +34,9 @@ export default function Theme(
       },
       palette: {
         mode,
+        primary: {
+          main: '#7c4dff',
+        },
       },
     },
   }

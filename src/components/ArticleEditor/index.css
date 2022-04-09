@@ -4,16 +4,19 @@
   pointer-events: none; 
 }
 
-.superFancyBlockquote {
+.knBlogBlockquote {
   color: #999;
   font-family: 'Hoefler Text', Georgia, serif;
   font-style: italic;
   text-align: center;
 }
 
-.superFancyBlockquote:hover {
+.knBlogBlockquote:hover {
   color: #666;
 }
 
-.superFancyUnstyled{
+.knBlogUnstyled{
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 400;
 }
