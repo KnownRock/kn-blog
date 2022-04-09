@@ -1,5 +1,5 @@
 import Minio from 'minio'
-
+// import path from 'path'
 // import mime from 'mime-types'
 import mime from 'mime'
 // move to global script to use minio sdk in vite

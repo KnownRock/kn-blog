@@ -39,3 +39,11 @@
 * move viewers to children and handle url
 
 * fix vite global environment variable eslint error
+
+
+
+
+** move more button to the one of params and remove openType
+** move menu to info context
+** edit notify to one instance
+** use path lib to resolve path

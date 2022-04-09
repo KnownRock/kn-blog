@@ -1,13 +1,16 @@
 import {
+  MouseEventHandler,
   useCallback, useEffect, useMemo, useState,
 } from 'react'
 
-import { Alert, Box, Snackbar } from '@mui/material'
+import {
+  Alert, Box, Divider, Menu, MenuItem, Snackbar,
+} from '@mui/material'
 import { v4 as uuidv4 } from 'uuid'
 import { useTranslation } from 'react-i18next'
 import InfoDialog from './InfoDialog'
 
-import InfoContext from '../../contexts/InfoContext'
+import InfoContext, { MenuItemInfo } from '../../contexts/InfoContext'
 
 type Options = {
   title?: string
@@ -98,7 +101,7 @@ export default function Info({
     }, 500)
   }, [])
 
-  const info = useCallback((opts:Options) => new Promise((resolve, reject) => {
+  const info = useCallback((opts:Options) => new Promise<string>((resolve, reject) => {
     const dialogId = uuidv4()
 
     setDialogs((oldDialogs) => [
@@ -107,9 +110,9 @@ export default function Info({
         id: dialogId,
         options: opts,
         proms: {
-          resolve(value) {
+          resolve() {
             closeDialog(dialogId)
-            resolve(value)
+            resolve('ok')
           },
           reject(value) {
             closeDialog(dialogId)
@@ -128,7 +131,9 @@ export default function Info({
     }, 500)
   }, [])
 
-  const notify = useCallback((opts:NotificationOptions) => new Promise((resolve, reject) => {
+  const notify = useCallback((
+    opts:NotificationOptions,
+  ) => new Promise<string>((resolve, reject) => {
     const notificationId = uuidv4()
 
     setNotifications((oldNotifications) => [
@@ -137,9 +142,9 @@ export default function Info({
         id: notificationId,
         options: opts,
         proms: {
-          resolve(value) {
+          resolve() {
             closeNotification(notificationId)
-            resolve(value)
+            resolve('ok')
           },
           reject(value) {
             closeNotification(notificationId)
@@ -149,26 +154,14 @@ export default function Info({
       }])
   }), [closeNotification])
 
-  // const [options, setOptions] = useState<{
-  //   title?: string,
-  //   content?: string,
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [openMenu, setOpenMenu] = useState(false)
+  const [menuItems, setMenuItems] = useState<Array<MenuItemInfo>>([])
+  const [width, setWidth] = useState(320)
 
-  //   component?: React.ReactNode,
-  // }>({})
-  // const [proms, setProms] = useState<{
-  //   resolve:(value:unknown) => void,
-  //   reject:(value:unknown) => void,
-  // }>({ resolve: () => {}, reject: () => {} })
-
-  // const info = (opts:Options) => new Promise((resolve, reject) => {
-  //   setOptions(opts)
-  //   setOpen(true)
-  //   setProms({
-  //     resolve,
-  //     reject,
-  //   })
-  // })
-
+  function handleCloseMenu() {
+    setOpenMenu(false)
+  }
   const infoContext = useMemo(() => ({
     info,
     error(e:Error) {
@@ -178,7 +171,28 @@ export default function Info({
       })
     },
     notify,
-  }), [info, t, notify])
+    menu(opts:{
+      anchor: HTMLElement,
+      items:MenuItemInfo[]
+      width?:number,
+    }) {
+      setWidth(opts.width || 320)
+      setAnchorEl(opts.anchor)
+      setOpenMenu(true)
+      setMenuItems(opts.items.map((item) => ({
+        ...item,
+        onClick: (e) => {
+          if (item.type !== 'divider') {
+            item.onClick(e)
+            handleCloseMenu()
+          }
+        },
+      })))
+      return new Promise<string>((resolve) => {
+        resolve('ok')
+      })
+    },
+  }), [info, notify, t])
 
   return (
     <>
@@ -187,7 +201,6 @@ export default function Info({
           <Dialog key={dialog.id} proms={dialog.proms} options={dialog.options} />
         ))}
 
-        {/* <Box> */}
         {notifications.map((notification) => (
           <CustomSnackBar
             key={notification.id}
@@ -195,7 +208,34 @@ export default function Info({
             options={notification.options}
           />
         ))}
-        {/* </Box> */}
+
+        {anchorEl && (
+        <Menu
+          id="basic-menu"
+          anchorEl={anchorEl}
+          open={openMenu}
+          onClose={handleCloseMenu}
+          onClick={(e) => e.stopPropagation()}
+          MenuListProps={{
+            'aria-labelledby': 'basic-button',
+          }}
+        >
+          {menuItems.map((item) => (
+            item.type !== 'divider'
+              ? (
+                <MenuItem
+                  sx={{ width }}
+                  key={uuidv4()}
+                  onClick={item.onClick}
+                >
+                  {item.label}
+                </MenuItem>
+              )
+              : (<Divider sx={{ width }} key={uuidv4()} />)
+          ))}
+
+        </Menu>
+        )}
 
       </Box>
       <InfoContext.Provider value={infoContext}>

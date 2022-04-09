@@ -32,7 +32,7 @@ export default function FileButton(
   const { type, displayName: name } = object
 
   const { info, error } = useContext(InfoContext)
-  const { refetch } = useContext(FilesContext)
+  const { refetch, onOpen, Detail } = useContext(FilesContext)
   const { t } = useTranslation()
   const navigate = useNavigate()
 
@@ -46,23 +46,7 @@ export default function FileButton(
 
   function handleClick() {
     // console.log(object)
-    if (type === 'folder' || type === 'remote-folder') {
-      // FIXME: unify /
-      navigate(`/files${object.prefix.startsWith('/') ? '' : '/'}${object.prefix}`)
-    }
-    if (type === 'file') {
-      const contnetType = object.metadata['content-type']
-      if (contnetType.startsWith('image/')) {
-        navigate(`/image-viewer?path=${object.name}`)
-      } else if (contnetType.startsWith('text/') || contnetType.startsWith('application/json')) {
-        navigate(`/text-viewer?path=${object.name}`)
-      } else if (contnetType.startsWith('video/')) {
-        navigate(`/video-viewer?path=${object.name}`)
-      } else {
-        navigate(`/text-viewer?path=${object.name}`)
-      }
-      // navigate(`/pic?bucket=${bucket}&file=${object.name}`)
-    }
+    onOpen(object)
   }
 
   async function handleDownload() {
@@ -201,7 +185,7 @@ export default function FileButton(
         onClick={() => handleClick()}
         variant="outlined"
         sx={{
-          // borderRadius: 2,
+          height: 52,
           width: '100%',
         }}
         startIcon={<FileIcon type={type} />}
@@ -228,7 +212,10 @@ export default function FileButton(
             {name}
 
           </Box>
-          <Box onMouseDown={(e) => e.stopPropagation()}>
+
+          {Detail && <Detail object={object} />}
+
+          {/* <Box onMouseDown={(e) => e.stopPropagation()}>
             <IconButton
               color="primary"
               onClick={handleMore}
@@ -238,9 +225,7 @@ export default function FileButton(
               <MoreVertIcon />
             </IconButton>
 
-          </Box>
-
-          {/* </Box> */}
+          </Box> */}
 
         </Box>
       </Button>

@@ -113,7 +113,8 @@ export function useShowLogin() {
     (async () => {
       if (show) {
         let form = {
-          url: 'http://127.0.0.1:9000',
+          url: 'http://192.168.199.256:9000',
+          // url: 'http://127.0.0.1:9000',
           backet: 'root',
           accessKey: 'minioadmin',
           secretKey: 'minioadmin',
@@ -168,7 +169,17 @@ export function useShowLogin() {
             const {
               url, backet, accessKey, secretKey,
             } = form
-            const urlProp = new URL(url)
+
+            let urlProp
+            try {
+              urlProp = new URL(url)
+            } catch (error) {
+              info({
+                title: t('Message'),
+                content: t('validate.error'),
+              })
+              return false
+            }
 
             function getPort(up:URL):number {
               const { port } = up

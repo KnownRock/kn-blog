@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import FileButton from './FileButton'
 import { dir } from '../../utils/fs'
@@ -22,15 +22,19 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
 
   const groupedObjects = useMemo(
     () => [{
+      id: 'remote-folders',
       title: t('Remote Folders'),
       objects: remoteFolderObjects,
     }, {
+      id: 'folders',
       title: t('Folders'),
       objects: folderObjects,
     }, {
+      id: 'files',
       title: t('Files'),
       objects: fileObjects,
     }].filter((group) => group.objects.length > 0),
+
     [t, remoteFolderObjects, folderObjects, fileObjects],
   )
 

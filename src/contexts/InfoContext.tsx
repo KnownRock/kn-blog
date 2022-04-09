@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { MouseEventHandler } from 'react'
 
-type Options = {
+export type Options = {
   title?: string
   content?: string
   component?: React.ReactNode,
@@ -8,12 +8,31 @@ type Options = {
   isOk?:()=>Promise<boolean>,
 }
 
-type NotificationOptions = {
+export type NotificationOptions = {
   message?: string,
   timeout?: number,
 }
 
-export default React.createContext({
+export type MenuItemInfo = {
+  label: string,
+  onClick:MouseEventHandler,
+  type?: 'primary' | 'secondary' | 'default' | 'inherit' | 'error' | 'disabled',
+} | {
+  type:'divider',
+}
+
+export interface InfoContextProps {
+  info:(opts:Options) => Promise<string>,
+  error:(error:Error) => Promise<string>,
+  notify:(opts:NotificationOptions) => Promise<string>,
+  menu:(opts:{
+    anchor: HTMLElement,
+    items:MenuItemInfo[]
+    width?:number,
+  }) => Promise<string>,
+}
+
+export default React.createContext<InfoContextProps>({
   info: (opts:Options) => new Promise((res, rej) => {
     const error = new Error(`You must implement confirm function.[${JSON.stringify(opts)}]`)
     rej(error)
@@ -28,4 +47,8 @@ export default React.createContext({
     const e = new Error(`You must implement confirm function.[${JSON.stringify(opts)}]`)
     rej(e)
   }),
+
+  menu() {
+    throw new Error('You must implement menu function.')
+  },
 })

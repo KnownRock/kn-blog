@@ -2,14 +2,16 @@ import {
   Box, Button, CircularProgress,
 } from '@mui/material'
 
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
 
 import Files from './Files'
 import { useAutoLogin, useLogout, useShowLogin } from '../../hooks/user-hooks'
 import FullContainer from './FullContainer'
+import Detail from './Detail'
+import Debounce from '../../components/Debounce'
 
 export default function FilesPage() {
   const { '*': path = '' } = useParams()
@@ -24,6 +26,7 @@ export default function FilesPage() {
 
   const { showLogin } = useShowLogin()
   const { logout } = useLogout()
+  const navigate = useNavigate()
 
   function handleLogin() {
     showLogin()
@@ -31,6 +34,35 @@ export default function FilesPage() {
 
   function handleLogout() {
     logout()
+  }
+
+  function handleOnOpen(object: {
+    name: string,
+    type: string,
+    displayName: string,
+    prefix: string,
+    metadata: {
+      [key: string]: string
+    }
+  }) {
+    const { type } = object
+    if (type === 'folder' || type === 'remote-folder') {
+      // FIXME: unify /
+      navigate(`/files${object.prefix.startsWith('/') ? '' : '/'}${object.prefix}`)
+    }
+    if (type === 'file') {
+      const contnetType = object.metadata['content-type']
+      if (contnetType.startsWith('image/')) {
+        navigate(`/image-viewer?path=${object.name}`)
+      } else if (contnetType.startsWith('text/') || contnetType.startsWith('application/json')) {
+        navigate(`/text-viewer?path=${object.name}`)
+      } else if (contnetType.startsWith('video/')) {
+        navigate(`/video-viewer?path=${object.name}`)
+      } else {
+        navigate(`/text-viewer?path=${object.name}`)
+      }
+      // navigate(`/pic?bucket=${bucket}&file=${object.name}`)
+    }
   }
 
   return (
@@ -54,15 +86,18 @@ export default function FilesPage() {
           {!loading && !success && <Button color="inherit" onClick={handleLogin}>{t('Login')}</Button>}
           {!loading && success && <Button color="inherit" onClick={handleLogout}>{t('Logout')}</Button>}
         </TopBar>
-        {
-          (!loading)
-            ? <Files path={path} />
-            : (
-              <FullContainer>
-                <CircularProgress />
-              </FullContainer>
-            )
-        }
+
+        <Debounce
+          loading={loading}
+          loadingChildren={(
+            <FullContainer>
+              <CircularProgress />
+            </FullContainer>
+          )}
+        >
+          <Files onOpen={handleOnOpen} type="selectFile" Detail={Detail} path={path} />
+        </Debounce>
+
       </Box>
     </Box>
   )
