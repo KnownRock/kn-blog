@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  useEffect, useMemo, useState,
+} from 'react'
 import { dir, getFile } from '../utils/fs'
 
 // export function useAsync<Result>(
@@ -44,9 +46,6 @@ import { dir, getFile } from '../utils/fs'
 // }
 
 export function useDir(fsPath: string) {
-  // const initialValue:Awaited<ReturnType<typeof dir>> = []
-  // return useAsync(dir, [fsPath], initialValue)
-
   const [objects, setObjects] = useState<Awaited<ReturnType<typeof dir>>>([])
   const [loading, setLoading] = useState(true)
   const [random, setRandom] = useState(Math.random())
@@ -79,8 +78,8 @@ export function useDir(fsPath: string) {
 export function useGetFile(fsPath: string) {
   const [object, setObject] = useState(null as Blob | null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
   const [random, setRandom] = useState(Math.random())
+  const [error, setError] = useState(false)
 
   const refetch = () => {
     setLoading(true)
@@ -91,14 +90,69 @@ export function useGetFile(fsPath: string) {
   useEffect(() => {
     setError(false)
     setLoading(true)
-
     getFile(fsPath)
       .then(setObject)
-      .catch(() => setError(true))
+      .catch((e) => {
+        setError(true)
+        setObject(null)
+      })
       .finally(() => setLoading(false))
   }, [fsPath, random])
 
   return {
     object, loading, error, refetch,
+  }
+}
+
+export function useFileText(path:string) {
+  const [text, setText] = useState('')
+  const { object, loading, error } = useGetFile(path || '')
+
+  const [readLoading, settReadLoading] = useState(true)
+  const [readError, setReadError] = useState(false)
+
+  useEffect(() => {
+    if (object && !loading) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        setText(reader.result as string)
+        settReadLoading(false)
+      }
+      reader.onerror = () => {
+        setReadError(true)
+        settReadLoading(false)
+      }
+
+      reader.readAsText(object)
+    }
+  }, [object, loading])
+
+  return { text, loading: (readLoading || loading) && !error, error: error || readError }
+}
+
+export function useDataUrl(path: string) {
+  const { object, loading, error } = useGetFile(path)
+  const [readLoaing, setReadLoading] = useState(true)
+  const [readError, setReadError] = useState(false)
+  const [dataUrl, setDataUrl] = useState('')
+  useEffect(() => {
+    if (!loading && object) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        setDataUrl(reader.result as string)
+        setReadLoading(false)
+      }
+      reader.onerror = () => {
+        setReadError(true)
+        setReadLoading(false)
+      }
+      reader.readAsDataURL(object)
+    }
+  }, [loading, object])
+
+  return {
+    dataUrl,
+    loading: readLoaing && loading,
+    error: readError || error,
   }
 }

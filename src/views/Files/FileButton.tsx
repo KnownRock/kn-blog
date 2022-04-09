@@ -188,7 +188,7 @@ export default function FileButton(
           height: 52,
           width: '100%',
         }}
-        startIcon={<FileIcon type={type} />}
+        startIcon={<FileIcon type={type} name={name} />}
       >
 
         <Box sx={{
@@ -206,6 +206,7 @@ export default function FileButton(
             fontWeight: 'bold',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
           >
 

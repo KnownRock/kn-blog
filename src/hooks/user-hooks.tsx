@@ -7,7 +7,7 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import CryptoJS from 'crypto-js'
 import { useNavigate } from 'react-router-dom'
 import InfoContext from '../contexts/InfoContext'
-import { testConfig, setConfig } from '../utils/fs'
+import { testConfig, setConfig, getFileAsText } from '../utils/fs'
 
 async function getVisitId() {
   return FingerprintJS.load()
@@ -213,12 +213,14 @@ export function useShowLogin() {
               return false
             }
 
-            const key = await getVisitId()
+            // const key = await getVisitId()
 
-            const encryptedConfig = CryptoJS.AES
-              .encrypt(JSON.stringify(inputConfig), key).toString()
+            // const encryptedConfig = CryptoJS.AES
+            //   .encrypt(JSON.stringify(inputConfig), key).toString()
 
-            localStorage.setItem('.config', encryptedConfig)
+            // localStorage.setItem('.config', encryptedConfig)
+
+            localStorage.setItem('.config', JSON.stringify(inputConfig))
 
             return true
           },
@@ -251,6 +253,7 @@ export function useAutoLogin() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [env, setEnv] = useState< { [key:string]: any } >({})
 
   const [minioLoading, setMinioLoading] = useState(false)
 
@@ -270,13 +273,21 @@ export function useAutoLogin() {
       try {
         const configText = localStorage.getItem('.config')
         if (configText) {
-          const key = await getVisitId()
+          // const key = await getVisitId()
+          // console.log(key)
 
-          const config = CryptoJS.AES.decrypt(configText, key).toString(CryptoJS.enc.Utf8)
-          // console.log(JSON.parse(config))
-          setConfig(JSON.parse(config))
+          // const config = CryptoJS.AES.decrypt(configText, key).toString(CryptoJS.enc.Utf8)
+
+          setConfig(JSON.parse(configText))
 
           setSuccess(true)
+        }
+        try {
+          const envText = await getFileAsText('.env')
+          setEnv(JSON.parse(envText))
+        // eslint-disable-next-line no-empty
+        } catch (e) {
+          setEnv({})
         }
       } catch (e) {
         localStorage.setItem('.config', '')
@@ -288,7 +299,9 @@ export function useAutoLogin() {
   }, [minioLoading])
 
   // TODO: add a login info ?
-  return { loading, error, success }
+  return {
+    loading, error, success, env,
+  }
 }
 
 export function useLogout() {

@@ -30,23 +30,21 @@
 ? divide the file manager and other viewer and build each one and save in s3
   every app as a app or handle other application in file manager?
 
-* Localstorage as a alternative to s3
++ Localstorage as a alternative to s3
 
 + fix folder download
 
-+ move all error handler to a main error handler
 
 * move viewers to children and handle url
 
 * fix vite global environment variable eslint error
 
 
-
-
-** move more button to the one of params and remove openType
-** move menu to info context
-** edit notify to one instance
 ** use path lib to resolve path
 ** fix filecontext import name
 ** optimization path resolve process
 ** unify path handler
+
+* move auto login to app?
+
++ add a desktop to manager all apps

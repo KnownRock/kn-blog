@@ -4,7 +4,7 @@ import {
 } from 'react'
 
 import {
-  Alert, Box, Divider, Menu, MenuItem, Snackbar,
+  Alert, Box, CircularProgress, Divider, Menu, MenuItem, Modal, Snackbar,
 } from '@mui/material'
 import { v4 as uuidv4 } from 'uuid'
 import { useTranslation } from 'react-i18next'
@@ -154,6 +154,8 @@ export default function Info({
   const [menuItems, setMenuItems] = useState<Array<MenuItemInfo>>([])
   const [width, setWidth] = useState(320)
 
+  const [loading, setLoading] = useState(false)
+
   function handleCloseMenu() {
     setOpenMenu(false)
   }
@@ -187,6 +189,11 @@ export default function Info({
         resolve('ok')
       })
     },
+
+    setLoading(isLoading:boolean) {
+      setLoading(isLoading)
+    },
+
   }), [info, notify, t])
 
   return (
@@ -203,6 +210,27 @@ export default function Info({
             options={notification.options}
           />
         ))}
+
+        {loading && (
+        <Modal
+          open
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        </Modal>
+        )}
 
         {anchorEl && (
         <Menu
