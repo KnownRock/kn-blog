@@ -1,9 +1,10 @@
 import { Box, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import { useContext, useMemo } from 'react'
+import { useCallback, useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DropzoneRootProps, useDropzone } from 'react-dropzone'
 import FileButton from './FileButton'
-import { dir } from '../../utils/fs'
+import { dir, uploadDropedFileList } from '../../utils/fs'
 import FilesContextRe from '../../contexts/FilesContext'
 
 export default function FileList({ objects }: { objects: Awaited<ReturnType<typeof dir>>; }) {
@@ -54,8 +55,12 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
         paddingLeft: 2,
         paddingRight: 2,
         flexGrow: 1,
+
+        // backgroundColor: 'red',
       }}
+
     >
+
       {groupedObjects.map((group) => (
         <Box key={group.title}>
           <Typography variant="subtitle1" component="h6">{group.title}</Typography>
