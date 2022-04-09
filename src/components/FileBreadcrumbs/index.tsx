@@ -5,6 +5,7 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import FilesContextRe from '../../contexts/FilesContext'
 
 // function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
 //   event.preventDefault()
@@ -14,12 +15,13 @@ import { useTranslation } from 'react-i18next'
 export default function CollapsedBreadcrumbs({ path }: { path: string }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { onNavigate } = React.useContext(FilesContextRe)
 
   function getHandleClick(p:string) {
     // console.log(p)
     // console.log(path.split('/'))
     return () => {
-      navigate(p)
+      onNavigate(p)
     }
   }
 
@@ -40,7 +42,7 @@ export default function CollapsedBreadcrumbs({ path }: { path: string }) {
                 <Button
                   key={item}
                   color="inherit"
-                  onClick={getHandleClick('/files/')}
+                  onClick={getHandleClick('')}
                 >
                   {item}
                 </Button>

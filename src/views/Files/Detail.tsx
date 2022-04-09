@@ -1,77 +1,169 @@
 import { Box, IconButton, Input } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useContext } from 'react'
+import { SetStateAction, useContext, useState } from 'react'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import pathUtils from 'path'
 import InfoContext from '../../contexts/InfoContext'
 import {
   copyFile, copyFolder, getFileAsDataUrl, isExist, removeDir, removeFile, renameFile, renameFolder,
 } from '../../utils/fs'
-import FilesContext from '../../contexts/FilesContext'
+import FilesContextRe from '../../contexts/FilesContext'
+import Files from './Files'
 
+function FolderSelector({ onSelect, nowPath, type }:{
+  onSelect: (path: string) => void;
+  nowPath: string;
+  type: 'folder' | 'file';
+}) {
+  const [path, setPath] = useState(nowPath.replace(/((?<=\/)|(?<=^))[^/]*$/, ''))
+  const [filePath, setFilePath] = useState(nowPath)
+  const oldFileName = type === 'file'
+    ? nowPath.match(/((?<=\/)|(?<=^))[^/]*$/)?.[0] ?? ''
+    : ''
+
+  const [fileName, setFileName] = useState(oldFileName)
+
+  function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const fPath = e.target.value
+
+    setPath(fPath.replace(/((?<=\/)|(?<=^))[^/]*$/, ''))
+    setFilePath(fPath)
+    if (type === 'file') {
+      setFileName(fPath.match(/((?<=\/)|(?<=^))[^/]*$/)?.[0] ?? '')
+    }
+
+    onSelect(fPath)
+  }
+
+  function handleNavigate(p:string) {
+    const px = p === '' ? '' : `${p}/`
+    setPath(px)
+    setFilePath(`${px}${fileName}`)
+  }
+
+  function handleOnOpen(object: { name: SetStateAction<string> }) {
+    setPath(`${object.name}/`)
+    setFilePath(`${object.name}/${fileName}`)
+
+    onSelect(`${object.name}/${fileName}`)
+  }
+
+  return (
+    <Box>
+      <Box sx={{
+        height: '50vh',
+      }}
+      >
+        <Files
+          onNavigate={handleNavigate}
+          path={path}
+          type="selectFolder"
+          onOpen={handleOnOpen}
+        />
+
+      </Box>
+      <Box>
+        <Input
+          fullWidth
+          value={filePath}
+          onChange={handleInput}
+        />
+      </Box>
+    </Box>
+  )
+}
 export default function Detail({ object }: { object: FileInfo; }) {
   const { menu } = useContext(InfoContext)
   const { info, error } = useContext(InfoContext)
   const { t } = useTranslation()
-  const { refetch } = useContext(FilesContext)
+  const { refetch } = useContext(FilesContextRe)
   const navigate = useNavigate()
 
   const { type } = object
 
-  function handleRenameAndCopyTo(submitType: 'Rename' | 'Copy to') {
+  function handleRenameAndCopyTo(submitType: 'Move to' | 'Copy to') {
     let newName = object.name
-
     const submitFunctions: ((oldPath: string, newPath: string) => Promise<unknown>)[] = ({
-      Rename: [renameFile, renameFolder],
+      'Move to': [renameFile, renameFolder],
       'Copy to': [copyFile, copyFolder],
     })[submitType]
 
     info({
-      title: t(submitType),
+      title: t(`${submitType} file`),
       component: (
-        <Input
-          fullWidth
-          placeholder="New name"
-          defaultValue={object.name}
-          autoFocus
-          onChange={(e) => {
-            newName = e.target.value
-          }}
-        />
+        <FolderSelector type="file" onSelect={(fp) => { newName = fp }} nowPath={newName} />
       ),
-    }).then(async () => {
-      if (object.type === 'file' || object.type === 'remote-folder') {
-        if (newName !== object.name) {
-          isExist(newName.replace(/\/$/, '')).then((exist) => {
-            if (exist) {
-              info({
-                title: t(submitType),
-                content: t('The file or directory already exists'),
-              })
-            } else {
-              submitFunctions[0](object.name, newName)
-                .then(() => refetch())
-                .catch(error)
-            }
+      noBlur: true,
+
+      isOk: async () => {
+        if (newName.endsWith('/')) {
+          info({
+            title: t('Message'),
+            content: t('Please input a valid name'),
           })
+          return false
         }
-      } else if (object.type === 'folder') {
-        if (newName !== object.name) {
-          isExist(newName.replace(/\/$/, '')).then((exist) => {
-            if (exist) {
-              info({
-                title: t(submitType),
-                content: t('The file or directory already exists'),
-              })
-            } else {
-              submitFunctions[1](object.name, newName)
-                .then(() => refetch())
-                .catch(error)
-            }
-          })
+        if (object.type === 'file' || object.type === 'remote-folder') {
+          if (newName !== object.name) {
+            return isExist(newName).then((exist) => {
+              if (exist) {
+                info({
+                  title: t(submitType),
+                  content: t('The file or directory already exists'),
+                })
+                return false
+              }
+              return submitFunctions[0](object.name, newName)
+                .then(() => true)
+                .catch((e) => {
+                  error(e)
+                  return false
+                })
+            })
+          }
+        } else if (object.type === 'folder') {
+          if (newName !== object.name) {
+            isExist(newName).then((exist) => {
+              if (exist) {
+                info({
+                  title: t(submitType),
+                  content: t('The file or directory already exists'),
+                })
+                return false
+              }
+              return submitFunctions[1](object.name, newName)
+                .then(() => true)
+                .catch((e) => {
+                  error(e)
+                  return false
+                })
+            })
+          }
         }
-      }
+        return true
+      },
+
     })
+    // return
+
+    // info({
+    //   title: t(submitType),
+    //   component: (
+    //     <Input
+    //       fullWidth
+    //       placeholder="New name"
+    //       defaultValue={object.name}
+    //       autoFocus
+    //       onChange={(e) => {
+    //         newName = e.target.value
+    //       }}
+    //     />
+    //   ),
+    // })
+      .then(async () => {
+        refetch()
+      })
   }
 
   async function handleDownload() {
@@ -125,9 +217,9 @@ export default function Detail({ object }: { object: FileInfo; }) {
                 navigate(`/text-viewer?path=${object.name}`)
               },
             }, {
-              label: t('Rename'),
+              label: t('Move to'),
               onClick: () => {
-                handleRenameAndCopyTo('Rename')
+                handleRenameAndCopyTo('Move to')
               },
             }, {
               label: t('Copy to'),

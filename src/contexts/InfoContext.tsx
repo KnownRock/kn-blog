@@ -5,13 +5,14 @@ export type Options = {
   content?: string
   component?: React.ReactNode,
   noClose?: boolean,
+  noBlur?: boolean,
   isOk?:()=>Promise<boolean>,
 }
 
 export type NotificationOptions = {
   message?: string,
   timeout?: number,
-}
+} | string
 
 export type MenuItemInfo = {
   label: string,

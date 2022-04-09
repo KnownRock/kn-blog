@@ -14,7 +14,7 @@ import Detail from './Detail'
 import Debounce from '../../components/Debounce'
 
 export default function FilesPage() {
-  const { '*': path = '' } = useParams()
+  const { '*': path = '/' } = useParams()
   const { t } = useTranslation()
 
   const currentFolderName = path.match(/([^/]*)\/$/)?.[1] ?? t('root')
@@ -34,6 +34,10 @@ export default function FilesPage() {
 
   function handleLogout() {
     logout()
+  }
+
+  function handleNavigate(p:string) {
+    navigate(`/files/${p}`)
   }
 
   function handleOnOpen(object: {
@@ -87,16 +91,13 @@ export default function FilesPage() {
           {!loading && success && <Button color="inherit" onClick={handleLogout}>{t('Logout')}</Button>}
         </TopBar>
 
-        <Debounce
-          loading={loading}
-          loadingChildren={(
-            <FullContainer>
-              <CircularProgress />
-            </FullContainer>
-          )}
-        >
-          <Files onOpen={handleOnOpen} type="selectFile" Detail={Detail} path={path} />
-        </Debounce>
+        {loading ? (
+          <FullContainer>
+            <CircularProgress />
+          </FullContainer>
+        ) : (
+          <Files onNavigate={handleNavigate} onOpen={handleOnOpen} type="browse" Detail={Detail} path={path} />
+        )}
 
       </Box>
     </Box>

@@ -11,7 +11,7 @@ import {
   copyFolder,
   getFileAsDataUrl, isExist, removeDir, removeFile, renameFile, renameFolder,
 } from '../../utils/fs'
-import FilesContext from '../../contexts/FilesContext'
+import FilesContextRe from '../../contexts/FilesContext'
 import InfoContext from '../../contexts/InfoContext'
 
 export default function FileButton(
@@ -32,7 +32,7 @@ export default function FileButton(
   const { type, displayName: name } = object
 
   const { info, error } = useContext(InfoContext)
-  const { refetch, onOpen, Detail } = useContext(FilesContext)
+  const { refetch, onOpen, Detail } = useContext(FilesContextRe)
   const { t } = useTranslation()
   const navigate = useNavigate()
 

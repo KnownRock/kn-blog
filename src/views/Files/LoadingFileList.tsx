@@ -4,13 +4,13 @@ import {
 import { useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Debounce from '../../components/Debounce'
-import FilesContext from '../../contexts/FilesContext'
+import FilesContextRe from '../../contexts/FilesContext'
 import FileList from './FileList'
 import FullContainer from './FullContainer'
 
 function LoadingInfo({ loading, error }: { loading: boolean; error: boolean; }) {
   const { t } = useTranslation()
-  const { refetch } = useContext(FilesContext)
+  const { refetch } = useContext(FilesContextRe)
 
   if (loading) {
     return (

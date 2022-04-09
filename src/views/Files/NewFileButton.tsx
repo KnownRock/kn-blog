@@ -3,12 +3,12 @@ import AddIcon from '@mui/icons-material/Add'
 import React, { Component, useContext } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isExist, newFile } from '../../utils/fs'
-import FilesContext from '../../contexts/FilesContext'
+import FilesContextRe from '../../contexts/FilesContext'
 import InfoContext from '../../contexts/InfoContext'
 
 export default function NewFile({ path }: { path: string; }) {
   const { t } = useTranslation()
-  const { refetch } = useContext(FilesContext)
+  const { refetch } = useContext(FilesContextRe)
   const { info, error } = useContext(InfoContext)
 
   let fileName = ''

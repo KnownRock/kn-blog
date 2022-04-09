@@ -47,3 +47,6 @@
 ** move menu to info context
 ** edit notify to one instance
 ** use path lib to resolve path
+** fix filecontext import name
+** optimization path resolve process
+** unify path handler

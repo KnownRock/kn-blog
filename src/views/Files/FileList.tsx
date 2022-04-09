@@ -4,9 +4,11 @@ import { useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import FileButton from './FileButton'
 import { dir } from '../../utils/fs'
+import FilesContextRe from '../../contexts/FilesContext'
 
 export default function FileList({ objects }: { objects: Awaited<ReturnType<typeof dir>>; }) {
   const { t } = useTranslation()
+  const { type: openType } = useContext(FilesContextRe)
   const typedObjects = useMemo(() => {
     if (objects) {
       return objects.map((object) => ({
@@ -33,9 +35,17 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
       id: 'files',
       title: t('Files'),
       objects: fileObjects,
-    }].filter((group) => group.objects.length > 0),
+    }].filter((group) => group.objects.length > 0)
+      .filter((group) => {
+        if (openType === 'selectFolder') {
+          if (group.id === 'files') {
+            return false
+          }
+        }
+        return true
+      }),
 
-    [t, remoteFolderObjects, folderObjects, fileObjects],
+    [t, remoteFolderObjects, folderObjects, fileObjects, openType],
   )
 
   return (

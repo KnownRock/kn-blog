@@ -10,17 +10,12 @@ import { v4 as uuidv4 } from 'uuid'
 import { useTranslation } from 'react-i18next'
 import InfoDialog from './InfoDialog'
 
-import InfoContext, { MenuItemInfo } from '../../contexts/InfoContext'
+import InfoContext, { MenuItemInfo, NotificationOptions } from '../../contexts/InfoContext'
 
 type Options = {
   title?: string
   content?: string,
   component?: React.ReactNode,
-}
-
-type NotificationOptions = {
-  message?: string,
-  timeout?: number,
 }
 
 function Dialog({ proms, options }: {
@@ -64,7 +59,7 @@ function CustomSnackBar({ proms, options }: {
         vertical: 'bottom',
         horizontal: 'center',
       }}
-      message={options.message}
+      message={typeof options === 'string' ? options : options.message}
       onClose={handleClose}
     />
   )

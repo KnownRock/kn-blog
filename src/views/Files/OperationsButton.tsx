@@ -2,7 +2,7 @@ import { Button, ButtonGroup } from '@mui/material'
 import { useContext } from 'react'
 import { useTranslation } from 'react-i18next'
 import { uploadFile as uploadFileToClient } from '../../utils/fs'
-import FilesContext from '../../contexts/FilesContext'
+import FilesContextRe from '../../contexts/FilesContext'
 import NewFileButton from './NewFileButton'
 import InfoContext from '../../contexts/InfoContext'
 
@@ -11,12 +11,16 @@ export default function OperationButton({
 }: {
   path: string;
 }) {
-  const { refetch } = useContext(FilesContext)
+  const { refetch } = useContext(FilesContextRe)
   const { t } = useTranslation()
-  const { error } = useContext(InfoContext)
+  const { error, notify } = useContext(InfoContext)
 
   const uploadFile = async () => {
+    // TODO: add exist verification
     uploadFileToClient(path)
+      .then(() => {
+        notify(t('files.upload.success'))
+      })
       .then(() => refetch())
       .catch((e) => {
         error(e)

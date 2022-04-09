@@ -24,6 +24,7 @@ i18n
           'Logout.content': 'Are you sure you want to logout?',
           'login.s3.error': 'S3 Login Error',
           'validate.error': 'Validation Error',
+          'files.upload.success': 'File uploaded successfully',
         },
       },
       cn: {
@@ -70,7 +71,10 @@ i18n
           'File saved': '文件已保存',
           Share: '分享',
           'Not implemented': '未实现',
-
+          'Move to': '移动到',
+          'Object name contains unsupported characters.': '对象名称包含不支持的字符。',
+          'Please input a valid name': '请输入有效的名称',
+          'files.upload.success': '文件上传成功',
         },
       },
     },

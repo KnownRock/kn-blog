@@ -163,7 +163,6 @@ export async function newFile(fsPath: string) {
   // FIXME: change another mime lib which does't use path
   // const type = mime.lookup(fsPath)
   const type = mime.getType(fsPath)
-
   await minioClient.putObject(bucket, `${path}`, '', type ? { 'Content-Type': type } : {})
 }
 
@@ -193,7 +192,10 @@ async function listObjects(
   return objs
 }
 
-export async function dir(fsPath:string, recursive = false) :Promise<Array<FileInfo>> {
+export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<FileInfo>> {
+  const fsPathWithoutStart = fsPathRaw.replace(/^\//, '')
+  const fsPath = fsPathWithoutStart.endsWith('/') ? fsPathWithoutStart : `${fsPathWithoutStart}/`
+
   const {
     bucket, path, minioClient, fsPath: linkFilePath, prefixPath,
   } = await resolvePath(fsPath)
@@ -369,6 +371,6 @@ export async function renameFolder(fsPath:string, newFsPath:string) {
 
 export async function isExist(newName:string) {
   const url = newName.startsWith('/') ? newName : `/${newName}`
-  const fatherFolder = url.replace(/\/[^/]+$/, '')
+  const fatherFolder = url.replace(/(?<=\/)[^/]+$/, '')
   return dir(fatherFolder).then((objects) => objects.some((o) => o.name === newName))
 }

@@ -113,7 +113,7 @@ export function useShowLogin() {
     (async () => {
       if (show) {
         let form = {
-          url: 'http://192.168.199.256:9000',
+          url: 'http://192.168.199.252:9000',
           // url: 'http://127.0.0.1:9000',
           backet: 'root',
           accessKey: 'minioadmin',

@@ -22,6 +22,7 @@ export default function InfoDialog({
     content?: string,
     component?: React.ReactNode,
     noClose?: boolean,
+    noBlur?: boolean,
     isOk?: ()=>Promise<boolean>,
   }
 }) {
@@ -30,6 +31,13 @@ export default function InfoDialog({
     setOpen(false)
     proms.reject('cancel')
   }
+  const handleBlur = () => {
+    if (options?.noClose) return
+    if (options?.noBlur) return
+    setOpen(false)
+    proms.reject('cancel')
+  }
+
   const handleOk = async () => {
     if (!options?.isOk || await options.isOk()) {
       setOpen(false)
@@ -43,7 +51,7 @@ export default function InfoDialog({
       open={open}
       fullWidth
       maxWidth="sm"
-      onClose={handleClose}
+      onClose={handleBlur}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >

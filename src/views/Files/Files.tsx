@@ -3,15 +3,16 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FileBreadcrumbs from '../../components/FileBreadcrumbs'
 import { useDir } from '../../hooks/fs-hooks'
-import FilesContext from '../../contexts/FilesContext'
+import FilesContextRe from '../../contexts/FilesContext'
 import LoadingFileList from './LoadingFileList'
 import LoadingOperationsButton from './LoadingOperationsButton'
 
 export default function Files(
   {
-    path, type: openType, onOpen, Detail,
+    path, type: openType, onOpen, Detail, onNavigate,
   }:
   {
+    onNavigate: (path: string) => void,
     Detail?: ({ object }: { object: FileInfo }) => JSX.Element
     path: string,
     type: 'browse' | 'selectFile' | 'selectFolder',
@@ -35,11 +36,12 @@ export default function Files(
     type: openType,
     onOpen,
     Detail,
+    onNavigate,
 
-  }), [refetch, openType, onOpen, Detail])
+  }), [refetch, openType, onOpen, Detail, onNavigate])
 
   return (
-    <FilesContext.Provider value={contextValue}>
+    <FilesContextRe.Provider value={contextValue}>
       <Box
         sx={{
           position: 'sticky',
@@ -65,7 +67,7 @@ export default function Files(
       </Box>
       <LoadingFileList objects={objs} loading={loading} error={error} />
 
-    </FilesContext.Provider>
+    </FilesContextRe.Provider>
   )
 }
 Files.defaultProps = {

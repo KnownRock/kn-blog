@@ -3,6 +3,7 @@ import {
   Route,
 } from 'react-router-dom'
 
+import process from 'process'
 import Article from './views/Article'
 import Home from './views/Home'
 import Files from './views/Files'
@@ -11,6 +12,8 @@ import TextViewer from './views/Viewers/TextViewer'
 import VideoViewer from './views/Viewers/VideoViewer'
 import Info from './components/Info'
 import ArticleViewer from './views/Viewers/ArticleViewer'
+
+window.process = process
 
 function App() {
   return (
