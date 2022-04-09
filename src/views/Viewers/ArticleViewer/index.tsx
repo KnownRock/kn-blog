@@ -111,7 +111,6 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
                 width: '100%',
                 height: '100%',
               }}
-
               src={dataUrl}
               alt="background"
             />
