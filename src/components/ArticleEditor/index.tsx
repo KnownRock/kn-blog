@@ -4,7 +4,7 @@ import {
   ContentState,
   convertFromRaw,
   convertToRaw,
-  DraftEditorCommand, Editor, EditorState, RichUtils,
+  DraftEditorCommand, Editor, EditorState, RawDraftContentState, RichUtils,
 } from 'draft-js'
 import {
   Box, Card, IconButton,
@@ -19,7 +19,15 @@ import Code from '@mui/icons-material/Code'
 import './index.css'
 import { useTranslation } from 'react-i18next'
 
-function ArticleEditor() {
+function ArticleEditor({
+  contentState,
+  onContentStateChange = () => {},
+  readonly = false,
+}:{
+  contentState?: RawDraftContentState | undefined;
+  onContentStateChange?: (contentState: RawDraftContentState) => void;
+  readonly?: boolean;
+}) {
   const { t } = useTranslation()
   const [state, setState] = useState({
     editorState:
@@ -42,33 +50,17 @@ function ArticleEditor() {
   const [floatVisible, setFloatVisible] = useState(false)
 
   useEffect(() => {
-    const savedState = localStorage.getItem('editorState')
     let newState = EditorState.createEmpty()
-    // EditorState.createWithContent(
-    //   ContentState.createFromText(
-    //     'Hello, world!',
-    //   ),
-    // )
-    if (savedState) {
+    if (contentState) {
       newState = EditorState.createWithContent(
-        // ContentState.createFromText(
-        //   'Hello, world!',
-        // ),
-        new ContentState(
-          convertFromRaw(
-            JSON.parse(
-              savedState,
-            ),
-          ),
-
-        ),
+        new ContentState(convertFromRaw(contentState)),
       )
     }
 
     setState({
       editorState: newState,
     })
-  }, [])
+  }, [contentState])
 
   const onSelectionChanged = (editorState: EditorState) => {
     editorState.getSelection()
@@ -133,8 +125,10 @@ function ArticleEditor() {
   const onChange = (editorState: EditorState) => {
     setState({ editorState })
     debouncedOnSelectionChanged(editorState)
-
-    localStorage.setItem('editorState', JSON.stringify(convertToRaw(editorState.getCurrentContent())))
+    onContentStateChange(convertToRaw(editorState.getCurrentContent()))
+    // localStorage.setItem(
+    //   'editorState',
+    //   JSON.stringify(convertToRaw(editorState.getCurrentContent())))
   }
   const handleKeyCommand = (command: DraftEditorCommand) => {
     const newState = RichUtils.handleKeyCommand(state.editorState, command)
@@ -215,12 +209,13 @@ function ArticleEditor() {
         ref={editorContainer}
         sx={{
           paddingTop: 1,
-          backgroundColor: 'rgba(255,255,0,0.1)',
+          ...readonly ? {} : { backgroundColor: 'rgba(255,255,0,0.1)' },
         }}
 
       >
 
         <Editor
+          readOnly={readonly}
           onBlur={onBlur}
           placeholder={t('Write something...')}
           editorState={state.editorState}
@@ -234,6 +229,11 @@ function ArticleEditor() {
       </Box>
     </Box>
   )
+}
+
+ArticleEditor.defaultProps = {
+  contentState: undefined,
+  onContentStateChange: () => {},
 }
 
 export default ArticleEditor

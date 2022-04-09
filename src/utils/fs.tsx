@@ -256,7 +256,7 @@ export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<Fi
     if (obj.prefix) {
       return {
         // ...obj,
-        name: obj.prefix.replace(/\/$/, ''),
+        name: `${linkFilePath}${obj.prefix.replace(/\/$/, '')}`,
         prefix: obj.prefix && `${linkFilePath}${obj.prefix.replace(new RegExp(`^${prefixPath}`), '')}`,
         displayName: obj.prefix && obj.prefix.replace(/\/$/, '').replace(/^.*\//, ''),
         type: 'folder',
@@ -317,7 +317,7 @@ export async function getFileAsText(fsPath:string): Promise<string> {
   })
 }
 
-export async function stat(fsPath:string) {
+export async function stat(fsPath:string):Promise<Minio.BucketItemStat> {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
   return new Promise((resolve, reject) => {
     minioClient.statObject(bucket, path, (err, s) => {
@@ -355,22 +355,32 @@ export async function copyFile(fsPath:string, newFsPath:string) {
 
 export async function copyFolder(fsPath:string, newFsPath:string) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
-  // const {
-  //   bucket: newBucket,
-  //   path: newPath,
-  //   // minioClient: newMinioClient,
-  // } = await resolvePath(newFsPath)
+  const {
+    bucket: newBucket,
+    path: newPath,
+    // minioClient: newMinioClient,
+  } = await resolvePath(newFsPath)
   const objects = await listObjects(minioClient, bucket, path, true)
+  const conds = new minio.CopyConditions()
   // TODO: judge if two clients are the same config
   return Promise.all(objects.map((obj) => {
-    const newObjName = obj.name.replace(new RegExp(`^${path}`), newFsPath)
-    return copyFile(`${obj.name}`, `${newObjName}`)
+    const newObjName = obj.name.replace(new RegExp(`^${path}`), newPath)
+    // return copyFile(`${obj.name}`, `${newObjName}`)
+    return new Promise((resolve, reject) => {
+      minioClient.copyObject(newBucket, newObjName, `${bucket}/${obj.name}`, conds, (err, etag) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(etag)
+        }
+      })
+    })
   }))
 }
 
 // TODO: recursive delete all linked files maybe?
 export async function removeDir(fsPath:string) {
-  const { bucket, path, minioClient } = await resolvePath(fsPath)
+  const { bucket, path, minioClient } = await resolvePath(fsPath.endsWith('/') ? fsPath : `${fsPath}/`)
 
   const objs = await listObjects(minioClient, bucket, path, true)
 
@@ -382,18 +392,7 @@ export async function renameFile(fsPath:string, newFsPath:string) {
 }
 
 export async function renameFolder(fsPath:string, newFsPath:string) {
-  const { bucket, path, minioClient } = await resolvePath(fsPath)
-  const {
-    // bucket: newBucket,
-    path: newPath,
-    // minioClient: newMinioClient,
-  } = await resolvePath(newFsPath)
-  const objects = await listObjects(minioClient, bucket, path, true)
-  // TODO: judge if two clients are the same config
-  return Promise.all(objects.map((obj) => {
-    const newObjName = obj.name.replace(new RegExp(`^${path}`), newPath)
-    return renameFile(`${obj.name}`, `${newObjName}`)
-  }))
+  return copyFolder(fsPath, newFsPath).then(() => removeDir(fsPath))
 }
 
 export async function isExist(newName:string) {

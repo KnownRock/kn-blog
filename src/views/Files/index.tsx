@@ -13,16 +13,21 @@ import FullContainer from './FullContainer'
 import Detail from './Detail'
 import Debounce from '../../components/Debounce'
 
+function Null():JSX.Element {
+  return <Box />
+}
 export default function FilesPage() {
   const { '*': path = '/' } = useParams()
   const { t } = useTranslation()
+
+  const folderPath = path.replace(/((?=^)|(?=\/))[^/]*$/, '')
 
   const currentFolderName = path.match(/([^/]*)\/$/)?.[1] ?? t('root')
 
   // TODO: use real parent's path to back
   const pathLength = path.split('/').length
 
-  const { loading, success } = useAutoLogin()
+  const { loading, success, env } = useAutoLogin()
 
   const { showLogin } = useShowLogin()
   const { logout } = useLogout()
@@ -55,15 +60,19 @@ export default function FilesPage() {
       navigate(`/files${object.prefix.startsWith('/') ? '' : '/'}${object.prefix}`)
     }
     if (type === 'file') {
-      const contnetType = object.metadata['content-type']
-      if (contnetType.startsWith('image/')) {
-        navigate(`/image-viewer?path=${object.name}`)
-      } else if (contnetType.startsWith('text/') || contnetType.startsWith('application/json')) {
-        navigate(`/text-viewer?path=${object.name}`)
-      } else if (contnetType.startsWith('video/')) {
-        navigate(`/video-viewer?path=${object.name}`)
+      if (object.name.endsWith('.knb')) {
+        navigate(`/article-viewer?path=${object.name}`)
       } else {
-        navigate(`/text-viewer?path=${object.name}`)
+        const contnetType = object.metadata['content-type']
+        if (contnetType.startsWith('image/')) {
+          navigate(`/image-viewer?path=${object.name}`)
+        } else if (contnetType.startsWith('text/') || contnetType.startsWith('application/json')) {
+          navigate(`/text-viewer?path=${object.name}`)
+        } else if (contnetType.startsWith('video/')) {
+          navigate(`/video-viewer?path=${object.name}`)
+        } else {
+          navigate(`/text-viewer?path=${object.name}`)
+        }
       }
       // navigate(`/pic?bucket=${bucket}&file=${object.name}`)
     }
@@ -96,8 +105,22 @@ export default function FilesPage() {
             <CircularProgress />
           </FullContainer>
         ) : (
-          <Files onNavigate={handleNavigate} onOpen={handleOnOpen} type="browse" Detail={Detail} path={path} />
+          <Files
+            onNavigate={handleNavigate}
+            onOpen={handleOnOpen}
+            type={env.readOnly ? 'readOnly' : 'browse'}
+            Detail={env.readonly ? Null : Detail}
+            path={path}
+          />
         )}
+
+        {/* <Box sx={{
+          backgroundColor: 'red',
+          height: 50,
+        }}
+        > 5991
+          123
+        </Box> */}
 
       </Box>
     </Box>

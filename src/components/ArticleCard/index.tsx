@@ -9,7 +9,7 @@ import { SxProps, Theme, CardActionArea } from '@mui/material'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useCallback } from 'react'
 
-export default function ArticleCard(sx: SxProps<Theme>) {
+export default function ArticleCard() {
   const navigate = useNavigate()
 
   const onOpen = useCallback(() => {
@@ -17,14 +17,14 @@ export default function ArticleCard(sx: SxProps<Theme>) {
   }, [navigate])
 
   return (
-    <Card sx={sx}>
+    <Card>
       <CardActionArea onClick={onOpen}>
         <CardMedia
           component="img"
           height={
             +(import.meta.env.VITE_APP_CARD_MEDIA_HEIGHT ?? '400')
           }
-          image="/static/images/card.png"
+          image="/static/images/card.jpg"
           alt="green iguana"
         />
       </CardActionArea>

@@ -18,7 +18,7 @@ export default function Files(
     onNavigate: (path: string) => void,
     Detail?: ({ object }: { object: FileInfo }) => JSX.Element
     path: string,
-    type: 'browse' | 'selectFile' | 'selectFolder',
+    type: 'browse' | 'selectFile' | 'selectFolder' | 'readOnly'
     onOpen: (object: {
       name: string,
       type: string,
@@ -33,9 +33,7 @@ export default function Files(
   const {
     objects: objs, loading, error, refetch,
   } = useDir(`/${path}`)
-
   const { error: showError } = useContext(InfoContext)
-
   const contextValue = useMemo(() => ({
     refetch,
     type: openType,
@@ -46,16 +44,32 @@ export default function Files(
   }), [refetch, openType, onOpen, Detail, onNavigate])
 
   const onDrop = useCallback((acceptedFiles) => {
-    uploadDropedFileList(path, acceptedFiles)
-      .then(() => {
-        refetch()
-      })
-      .catch(showError)
-  }, [path, refetch, showError])
+    if (openType === 'browse') {
+      uploadDropedFileList(path, acceptedFiles)
+        .then(() => {
+          refetch()
+        })
+        .catch(showError)
+    }
+  }, [openType, path, refetch, showError])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     noClick: true,
   })
+
+  function hideFiles(files:FileInfo[]) {
+    if (files) {
+      return files.filter((el) => {
+        if (openType === 'readOnly') {
+          if (el.name === '.env') {
+            return false
+          }
+        }
+        return true
+      })
+    }
+    return []
+  }
 
   return (
     <FilesContextRe.Provider value={contextValue}>
@@ -101,7 +115,7 @@ export default function Files(
           />
         }
 
-        <LoadingFileList objects={objs} loading={loading} error={error} />
+        <LoadingFileList objects={hideFiles(objs)} loading={loading} error={error} />
       </Box>
 
     </FilesContextRe.Provider>

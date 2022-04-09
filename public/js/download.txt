@@ -1,0 +1,1 @@
+https://github.com/KnownRock/kn-blog-minio-lib

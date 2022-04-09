@@ -1,21 +1,13 @@
 import { Box, Button, IconButton } from '@mui/material'
-import { useEffect, useState } from 'react'
-import { useGetFile } from '../../../hooks/fs-hooks'
+import useLoading from '../../../contexts/LoadingContext'
+import { useDataUrl } from '../../../hooks/fs-hooks'
 
 import Basic from '../Basic'
 
 function ImageViewer({ path }: { path: string }) {
-  const { object, loading, error } = useGetFile(path || '')
-  const [dataUrl, setDataUrl] = useState('')
-  useEffect(() => {
-    if (object) {
-      const reader = new FileReader()
-      reader.onload = () => {
-        setDataUrl(reader.result as string)
-      }
-      reader.readAsDataURL(object)
-    }
-  }, [object])
+  const { dataUrl, loading, error } = useDataUrl(path || '')
+
+  useLoading(loading)
 
   if (loading) {
     return <Box>Loading...</Box>

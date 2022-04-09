@@ -1,7 +1,7 @@
-import { Box, IconButton, Input } from '@mui/material'
+import { Box, IconButton } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { SetStateAction, useContext, useState } from 'react'
+import { useContext } from 'react'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import pathUtils from 'path'
 import InfoContext from '../../contexts/InfoContext'
@@ -9,73 +9,11 @@ import {
   copyFile, copyFolder, getFileAsDataUrl, isExist, removeDir, removeFile, renameFile, renameFolder,
 } from '../../utils/fs'
 import FilesContextRe from '../../contexts/FilesContext'
-import Files from './Files'
+import FolderSelector from './FolderSelector'
 
-function FolderSelector({ onSelect, nowPath, type }:{
-  onSelect: (path: string) => void;
-  nowPath: string;
-  type: 'folder' | 'file';
-}) {
-  const [path, setPath] = useState(nowPath.replace(/((?<=\/)|(?<=^))[^/]*$/, ''))
-  const [filePath, setFilePath] = useState(nowPath)
-  const oldFileName = type === 'file'
-    ? nowPath.match(/((?<=\/)|(?<=^))[^/]*$/)?.[0] ?? ''
-    : ''
-
-  const [fileName, setFileName] = useState(oldFileName)
-
-  function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
-    const fPath = e.target.value
-
-    setPath(fPath.replace(/((?<=\/)|(?<=^))[^/]*$/, ''))
-    setFilePath(fPath)
-    if (type === 'file') {
-      setFileName(fPath.match(/((?<=\/)|(?<=^))[^/]*$/)?.[0] ?? '')
-    }
-
-    onSelect(fPath)
-  }
-
-  function handleNavigate(p:string) {
-    const px = p === '' ? '' : `${p}/`
-    setPath(px)
-    setFilePath(`${px}${fileName}`)
-  }
-
-  function handleOnOpen(object: { name: SetStateAction<string> }) {
-    setPath(`${object.name}/`)
-    setFilePath(`${object.name}/${fileName}`)
-
-    onSelect(`${object.name}/${fileName}`)
-  }
-
-  return (
-    <Box>
-      <Box sx={{
-        height: '50vh',
-      }}
-      >
-        <Files
-          onNavigate={handleNavigate}
-          path={path}
-          type="selectFolder"
-          onOpen={handleOnOpen}
-        />
-
-      </Box>
-      <Box>
-        <Input
-          fullWidth
-          value={filePath}
-          onChange={handleInput}
-        />
-      </Box>
-    </Box>
-  )
-}
 export default function Detail({ object }: { object: FileInfo; }) {
   const { menu } = useContext(InfoContext)
-  const { info, error } = useContext(InfoContext)
+  const { info, error, notify } = useContext(InfoContext)
   const { t } = useTranslation()
   const { refetch } = useContext(FilesContextRe)
   const navigate = useNavigate()
@@ -89,10 +27,14 @@ export default function Detail({ object }: { object: FileInfo; }) {
       'Copy to': [copyFile, copyFolder],
     })[submitType]
 
+    const selectorType = (object.type === 'file' || object.type === 'remote-folder')
+      ? 'file'
+      : 'folder'
+
     info({
-      title: t(`${submitType} file`),
+      title: t(`${submitType}`),
       component: (
-        <FolderSelector type="file" onSelect={(fp) => { newName = fp }} nowPath={newName} />
+        <FolderSelector type={selectorType} onSelect={(fp) => { newName = fp }} nowPath={newName} />
       ),
       noBlur: true,
 
@@ -114,12 +56,7 @@ export default function Detail({ object }: { object: FileInfo; }) {
                 })
                 return false
               }
-              return submitFunctions[0](object.name, newName)
-                .then(() => true)
-                .catch((e) => {
-                  error(e)
-                  return false
-                })
+              return true
             })
           }
         } else if (object.type === 'folder') {
@@ -132,36 +69,34 @@ export default function Detail({ object }: { object: FileInfo; }) {
                 })
                 return false
               }
-              return submitFunctions[1](object.name, newName)
-                .then(() => true)
-                .catch((e) => {
-                  error(e)
-                  return false
-                })
+              return true
             })
           }
         }
         return true
       },
-
     })
-    // return
-
-    // info({
-    //   title: t(submitType),
-    //   component: (
-    //     <Input
-    //       fullWidth
-    //       placeholder="New name"
-    //       defaultValue={object.name}
-    //       autoFocus
-    //       onChange={(e) => {
-    //         newName = e.target.value
-    //       }}
-    //     />
-    //   ),
-    // })
       .then(async () => {
+        if (object.type === 'file' || object.type === 'remote-folder') {
+          if (newName !== object.name) {
+            return submitFunctions[0](object.name, newName)
+              .then(() => true)
+              .catch((e) => {
+                error(e)
+              })
+          }
+        } else if (object.type === 'folder') {
+          if (newName !== object.name) {
+            return submitFunctions[1](object.name, newName)
+              .then(() => true)
+              .catch((e) => {
+                error(e)
+              })
+          }
+        }
+        return true
+      }).then(() => {
+        notify(t('Succeed'))
         refetch()
       })
   }

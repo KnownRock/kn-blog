@@ -1,9 +1,11 @@
 import { useContext, useEffect, useState } from 'react'
 import Editor from '@monaco-editor/react'
-import { Fab } from '@mui/material'
+import {
+  Box, CircularProgress, Fab, Modal,
+} from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save'
 import { useTranslation } from 'react-i18next'
-import { useGetFile } from '../../../hooks/fs-hooks'
+import { useFileText, useGetFile } from '../../../hooks/fs-hooks'
 import Basic from '../Basic'
 import { saveTextFile } from '../../../utils/fs'
 import InfoContext from '../../../contexts/InfoContext'
@@ -24,47 +26,46 @@ const extLanguageDict: { [key: string]: string } = {
   s3: 'json',
 }
 
-function Viewer({ path }: { path: string }) {
-  // debugger
-  const [text, setText] = useState('')
+function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
+  const { error: infoError, notify } = useContext(InfoContext)
+
+  const { text, loading, error } = useFileText(path || '')
+  const [editorText, setEditorText] = useState(text)
+
   const { t } = useTranslation()
 
-  const { object, loading, error } = useGetFile(path || '')
-  const { error: infoError, notify } = useContext(InfoContext)
-  useEffect(() => {
-    if (object) {
-      const reader = new FileReader()
-      reader.onload = () => {
-        setText(reader.result as string)
-      }
-      reader.readAsText(object)
-    }
-  }, [object])
-
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error...</div>
-
-  const language = extLanguageDict[path?.match(/\.([^.]*)$/)?.[1] ?? ''] ?? 'text'
+  let language = extLanguageDict[path?.match(/\.([^.]*)$/)?.[1] ?? ''] ?? 'text'
+  if (path === '.env') {
+    language = 'json'
+  }
 
   const handleSave = () => {
-    saveTextFile(path, text).then(() => notify({
+    saveTextFile(path, editorText).then(() => notify({
       message: t('File saved'),
     })).catch((e) => {
       infoError(e)
     })
   }
 
+  useEffect(() => {
+    if (!loading) {
+      setEditorText(text)
+    }
+  }, [loading, text])
+
   return (
     <>
+
       <Editor
         options={{
           fontSize: 16,
+          readOnly,
         }}
         height="100%"
-        value={text}
+        value={editorText}
         defaultLanguage={language}
         onChange={(newValue) => {
-          setText(newValue ?? '')
+          setEditorText(newValue ?? '')
         }}
       />
       <Fab

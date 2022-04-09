@@ -31,6 +31,7 @@ export interface InfoContextProps {
     items:MenuItemInfo[]
     width?:number,
   }) => Promise<string>,
+  setLoading:(isLoading:boolean) => void,
 }
 
 export default React.createContext<InfoContextProps>({
@@ -51,5 +52,9 @@ export default React.createContext<InfoContextProps>({
 
   menu() {
     throw new Error('You must implement menu function.')
+  },
+
+  setLoading() {
+    throw new Error('You must implement loading function.')
   },
 })
