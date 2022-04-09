@@ -96,7 +96,6 @@ export default function Files(
         )}
 
       </Box>
-
       <Box
         sx={{
           flexGrow: 1,
