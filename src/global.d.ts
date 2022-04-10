@@ -7,7 +7,6 @@ declare global {
     displayName:string,
     prefix:string,
     metadata:Minio.ItemBucketMetadata
-    lastModified: Date,
     // size:number,
     // lastModified:string,
   }

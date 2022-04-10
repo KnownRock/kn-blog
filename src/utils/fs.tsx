@@ -305,7 +305,6 @@ export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<Fi
           displayName: `${displayName}`,
           prefix: `${linkFilePath}${obj.name}/`,
           metadata: obj.metadata,
-          lastModified: obj.lastModified,
         } as FileInfo
       }
 
@@ -315,7 +314,6 @@ export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<Fi
         type: 'file',
         displayName: obj.name.split('/').pop(),
         metadata: obj.metadata,
-        lastModified: obj.lastModified,
       } as FileInfo
     }
     if (obj.prefix) {
@@ -326,7 +324,6 @@ export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<Fi
         displayName: obj.prefix && obj.prefix.replace(/\/$/, '').replace(/^.*\//, ''),
         type: 'folder',
         metadata: obj.metadata,
-        lastModified: obj.lastModified,
       } as FileInfo
     }
 
@@ -335,7 +332,6 @@ export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<Fi
       type: 'unknown',
       displayName: obj.name,
       metadata: obj.metadata,
-      lastModified: obj.lastModified,
       prefix: '',
     } as FileInfo
   })
