@@ -59,3 +59,16 @@
 
 * enhance article editor
 * enhance code editor in article editor
+
+* header tree box
+
+** add a blogs managerment paddingLeft
+     to handle drafts to blogs, and index home blog list
+
+
+
+? cors download not work? only jump?
+
+
+* fix file selector
+*** resolve url directly

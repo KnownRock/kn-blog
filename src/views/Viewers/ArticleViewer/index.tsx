@@ -4,23 +4,29 @@ import {
 import {
   Box, Card, CardActionArea, CardContent,
   CardMedia, Container, Fab, IconButton, Input,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save'
 import { useTranslation } from 'react-i18next'
 import { RawDraftContentState } from 'draft-js'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import SendIcon from '@mui/icons-material/Send'
 import { useFileText } from '../../../hooks/fs-hooks'
 import Basic from '../Basic'
-import { saveTextFile } from '../../../utils/fs'
+import {
+  resolvePath, saveDataUrl, saveText, saveTextFile,
+} from '../../../utils/fs'
 import InfoContext from '../../../contexts/InfoContext'
 import ArticleEditor from '../../../components/ArticleEditor'
 import useLoading from '../../../contexts/LoadingContext'
 import { useSelectImg } from '../../../hooks/useSelectImg'
+import FolderSelector from '../../Files/FolderSelector'
 
 export const defaultImg = '/static/images/card.jpg'
 
-function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
+function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
+{ path: string, readOnly: boolean, setTitle?:(title:string)=>void }) {
   const { error: infoError, notify } = useContext(InfoContext)
   const { info } = useContext(InfoContext)
   const { text, loading, error } = useFileText(path || '')
@@ -31,10 +37,17 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
 
   const [dataUrl, setDataUrl] = useState('')
   const [title, setTitle] = useState('')
-
   const editorContentState = useRef<RawDraftContentState>()
 
   const [contentState, setContentState] = useState<RawDraftContentState | undefined>(undefined)
+
+  const readOnly = parReadOnly || path.endsWith('.knbe')
+
+  useEffect(() => {
+    if (title) {
+      setTopTitle?.(title)
+    }
+  }, [title, setTopTitle])
 
   useEffect(() => {
     if (loading) return
@@ -69,6 +82,77 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
     })
   }
 
+  const handleExport = async () => {
+    let newName = path.replace(/\.knb$/, '')
+
+    await info({
+      title: t('Export'),
+      component: (
+        <FolderSelector type="file" onSelect={(fp) => { newName = fp }} nowPath={newName} />
+      ),
+      noBlur: true,
+    })
+
+    const { bucket, path: rPath, minioClient } = await resolvePath(newName)
+
+    const { protocol, host, port } = minioClient as unknown as {
+      protocol: string, host: string, port: number,
+    }
+
+    const urlPrefix = `${protocol}//${host}:${port}/${bucket}/${rPath}`
+    if (dataUrl !== defaultImg) {
+      await saveDataUrl(`${newName}/bg`, dataUrl)
+    }
+    const entityMap = editorContentState.current?.entityMap
+
+    const entityKeys : Array<number> = []
+    let summary = ''
+    editorContentState.current?.blocks.forEach((block) => {
+      summary += block.text
+
+      Array.from(block.entityRanges).forEach((entityRange) => {
+        const entityKey = entityRange.key
+        summary += block.text.substr(entityRange.offset, entityRange.length)
+        entityKeys.push(entityKey)
+      })
+    })
+    const newEntityMap : typeof entityMap = {}
+    const promises = entityKeys.map((entityKey) => {
+      const entity = entityMap?.[entityKey]
+      if (!entity) return
+
+      const { data } = entity
+      const dataUrl1 = data.src
+      const url = `${urlPrefix}/${entityKey}`
+      // eslint-disable-next-line consistent-return
+      return saveDataUrl(`${newName}/${entityKey}`, dataUrl1)
+        .then(() => {
+          newEntityMap[entityKey] = {
+            ...entity,
+            data: {
+              ...entity.data,
+              src: url,
+            },
+          }
+        })
+    })
+
+    await Promise.all(promises)
+    await saveText(`${newName}/index.knbe`, JSON.stringify({
+      content: {
+        ...editorContentState.current,
+        entityMap: newEntityMap,
+      },
+      dataUrl: (dataUrl !== defaultImg) ? `${urlPrefix}/bg` : '',
+      title,
+      summary: summary.slice(0, 500),
+    })).then(() => notify({
+      message: t('Blog exported'),
+    })).catch((e) => {
+      infoError(e)
+    })
+  }
+
   const handleSelectImg = () => {
     if (readOnly) return
 
@@ -87,7 +171,7 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
     info({
       title: t('Remove image'),
       content: t('Are you sure to remove the image?'),
-    }).then((r) => {
+    }).then(() => {
       setDataUrl(defaultImg)
     }).catch(() => {
       // do nothing
@@ -119,6 +203,25 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
         overflow: 'auto',
       }}
       >
+        <Box sx={{
+          position: 'relative',
+          right: 0,
+          height: 0,
+          zIndex: 1,
+        }}
+        >
+          <Box
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(!loading && defaultImg !== dataUrl && !readOnly) && (
+            <IconButton color="warning" onClick={handleRemoveImg}>
+
+              <RemoveCircleOutlineIcon />
+            </IconButton>
+            )}
+          </Box>
+        </Box>
         <CardActionArea onClick={handleSelectImg}>
           <Box sx={{
             height: {
@@ -130,23 +233,7 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
             },
           }}
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
 
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {(defaultImg !== dataUrl && !readOnly) && (
-              <IconButton color="warning" onClick={handleRemoveImg}>
-
-                <RemoveCircleOutlineIcon />
-              </IconButton>
-              )}
-            </Box>
             {dataUrl && (
             <CardMedia
               component="img"
@@ -199,19 +286,39 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
       </Card>
 
       {!readOnly && (
-      <Fab
-        color="primary"
-        aria-label="save"
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
-        }}
-        size="large"
-        onClick={handleSave}
-      >
-        <SaveIcon />
-      </Fab>
+        <>
+          <Tooltip placement="left" title={t('Export') as string}>
+            <Fab
+              color="primary"
+              aria-label="export"
+              sx={{
+                position: 'fixed',
+                bottom: 84,
+                right: 16,
+              }}
+              size="large"
+              onClick={handleExport}
+            >
+              <SendIcon />
+            </Fab>
+          </Tooltip>
+          <Tooltip placement="left" title={t('Save') as string}>
+            <Fab
+              color="primary"
+              aria-label="save"
+              sx={{
+                position: 'fixed',
+                bottom: 16,
+                right: 16,
+              }}
+              size="large"
+              onClick={handleSave}
+            >
+              <SaveIcon />
+            </Fab>
+          </Tooltip>
+        </>
+
       )}
     </Container>
 

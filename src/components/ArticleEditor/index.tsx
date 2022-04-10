@@ -55,6 +55,7 @@ function MediaComponent(props:{
     const a = document.createElement('a')
     a.href = data.src
     a.download = data.src
+    a.target = '_blank'
     a.click()
   }, [data])
 
@@ -383,7 +384,7 @@ function ArticleEditor({
           handleKeyCommand={handleKeyCommand}
           onChange={onChange}
           blockStyleFn={myBlockStyleFn}
-          onTab={onTab}
+          // onTab={onTab}
         />
       </Box>
     </Box>

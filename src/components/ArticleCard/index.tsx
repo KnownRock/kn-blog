@@ -5,42 +5,99 @@ import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import { SxProps, Theme, CardActionArea } from '@mui/material'
+import {
+  SxProps, Theme, CardActionArea, Box,
+} from '@mui/material'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useFileText } from '../../hooks/fs-hooks'
+import useLoading from '../../contexts/LoadingContext'
 
-export default function ArticleCard() {
+const defaultImg = '/static/images/card.jpg'
+export default function ArticleCard({ object }:{
+  object: FileInfo
+}) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const onOpen = useCallback(() => {
-    navigate('/articles/123')
-  }, [navigate])
+    navigate(`/article-viewer/${object.name}/index.knbe`)
+  }, [navigate, object.name])
+
+  const { text, loading } = useFileText(`${object.name}/index.knbe`)
+
+  const { dataUrl, title, summary } = React.useMemo(() => {
+    if (!loading) {
+      const d = JSON.parse(text)
+      return d as {
+        dataUrl: string
+        title:string
+        summary: string
+      }
+    }
+    return {
+      dataUrl: '',
+      title: '',
+      summary: '',
+    }
+  }, [text, loading])
 
   return (
     <Card>
       <CardActionArea onClick={onOpen}>
-        <CardMedia
-          component="img"
-          height={
-            +(import.meta.env.VITE_APP_CARD_MEDIA_HEIGHT ?? '400')
-          }
-          image="/static/images/card.jpg"
-          alt="green iguana"
-        />
+
+        <Box sx={{
+          height: {
+            xs: 300,
+            sm: 400,
+            md: 500,
+            lg: 500,
+            xl: 500,
+          },
+        }}
+        >
+
+          {!loading && (
+          <CardMedia
+            component="img"
+            sx={{
+              width: '100%',
+              height: '100%',
+            }}
+            image={(!dataUrl && !loading) ? defaultImg : dataUrl}
+            alt="background"
+          />
+          )}
+
+        </Box>
       </CardActionArea>
       <CardContent>
-        <Typography gutterBottom variant="h4" component="div">
-          Node Red
+        <Typography
+          gutterBottom
+          variant="h4"
+          component="div"
+          sx={{
+            height: 40,
+          }}
+        >
+          {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Lizards are a widespread group of squamate reptiles, with over 6,000
-          species, ranging across all continents except Antarctica
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            height: 40,
+          }}
+        >
+          {summary}
+          ...
         </Typography>
       </CardContent>
 
       <CardActions>
         {/* <Button size="small">分享</Button> */}
-        <Button size="small" onClick={onOpen}>查看</Button>
+        <Button size="small" onClick={onOpen}>{t('More')}</Button>
       </CardActions>
 
     </Card>

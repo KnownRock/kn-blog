@@ -60,7 +60,7 @@ export default function FilesPage() {
       navigate(`/files${object.prefix.startsWith('/') ? '' : '/'}${object.prefix}`)
     }
     if (type === 'file') {
-      if (object.name.endsWith('.knb')) {
+      if (object.name.endsWith('.knb') || object.name.endsWith('.knbe')) {
         navigate(`/article-viewer/${object.name}`)
       } else {
         const contnetType = object.metadata['content-type']
@@ -95,7 +95,7 @@ export default function FilesPage() {
           flexDirection: 'column',
         }}
       >
-        <TopBar withBack={pathLength > 1} title={(currentFolderName)}>
+        <TopBar withHome withBack={pathLength > 1} title={(currentFolderName)}>
           {!loading && !success && <Button color="inherit" onClick={handleLogin}>{t('Login')}</Button>}
           {!loading && success && <Button color="inherit" onClick={handleLogout}>{t('Logout')}</Button>}
         </TopBar>
