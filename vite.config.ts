@@ -9,8 +9,12 @@ export default defineConfig({
     port: 23030,
   },
   // https://dev.to/0xbf/vite-module-path-has-been-externalized-for-browser-compatibility-2bo6
-  alias: {
-    path: "path-browserify",
-  },
+  
+  resolve:{
+    alias: {
+      path: "path-browserify",
+    },
+  }
+  
 
 })
