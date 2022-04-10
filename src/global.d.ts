@@ -10,8 +10,7 @@ declare global {
     // size:number,
     // lastModified:string,
   }
-}
-declare global {
+
   interface ImportMetaEnv {
     readonly VITE_APP_TITLE: string
     readonly VITE_APP_CARD_MEDIA_HEIGHT: string,

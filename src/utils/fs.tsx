@@ -90,7 +90,7 @@ export async function resolvePath(path: string, fsPath = '', prefixPath = '', bu
   let linkFileIndex = -1
 
   paths.some((p, index) => {
-    if (p.match(/^[^.]+.s3$/)) {
+    if (p.endsWith('.s3')) {
       linkFileIndex = index
 
       return true
@@ -201,6 +201,69 @@ export async function saveTextFile(
   return minioClient.putObject(bucket, path, text, { 'Content-Type': 'text/plain' })
 }
 
+export async function getMinioClient() {
+  let minioClient
+  if (minioClient === undefined) {
+    if (rootMinioClient === undefined) {
+      rootMinioClient = new minio.Client(defaultConfig)
+    }
+    minioClient = rootMinioClient
+  }
+
+  return minioClient
+}
+
+// TODO: move it page
+export async function saveTextToDefaultBucket(
+  fsPath:string,
+  text:string,
+) {
+  const minioClient = await getMinioClient()
+  const { bucket } = defaultConfig
+  return minioClient.putObject(bucket, fsPath, text, { 'Content-Type': 'text/plain' })
+}
+
+export async function saveText(
+  fsPath:string,
+  text:string,
+) {
+  const { bucket, path, minioClient } = await resolvePath(fsPath)
+  return minioClient.putObject(bucket, path, text, { 'Content-Type': 'text/plain' })
+}
+
+export async function saveDataUrl(
+  fsPath:string,
+  dataUrl:string,
+) {
+  const { bucket, path, minioClient } = await resolvePath(fsPath)
+  const byteString = atob(dataUrl.split(',')[1])
+  const fileType = dataUrl.match(/^data:([^;]+)/)?.[1]
+  const ab = new ArrayBuffer(byteString.length)
+  const buffer = new Uint8Array(ab)
+  for (let i = 0; i < byteString.length; i += 1) {
+    buffer[i] = byteString.charCodeAt(i)
+  }
+  return minioClient.putObject(bucket, path, buffer as Buffer, { 'Content-Type': fileType })
+}
+
+export async function saveDataUrlToDefaultBucket(
+  fsPath:string,
+  dataUrl:string,
+) {
+  const minioClient = await getMinioClient()
+  const { bucket } = defaultConfig
+
+  const byteString = atob(dataUrl.split(',')[1])
+  const fileType = dataUrl.match(/^data:([^;]+)/)?.[1]
+  const ab = new ArrayBuffer(byteString.length)
+  const buffer = new Uint8Array(ab)
+  for (let i = 0; i < byteString.length; i += 1) {
+    buffer[i] = byteString.charCodeAt(i)
+  }
+
+  return minioClient.putObject(bucket, fsPath, buffer as Buffer, { 'Content-Type': fileType })
+}
+
 async function listObjects(
   minioClient:Minio.Client,
   bucket:string,
@@ -231,7 +294,7 @@ export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<Fi
 
   return objs.map((obj) => {
     if (obj.name) {
-      if (obj.name.match(/^[^.]+.s3$/)) {
+      if (obj.name.endsWith('.s3')) {
         const displayNameRaw = obj.name.split('/').pop() ?? ''
         const displayName = displayNameRaw
         // displayNameRaw.match(/([^.]+).s3/)?.[1] ?? displayNameRaw

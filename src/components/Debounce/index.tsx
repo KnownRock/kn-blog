@@ -1,3 +1,4 @@
+import { Box } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 
 // TODO: refact this to a component
@@ -14,7 +15,7 @@ export default function Debounce({
   errorChildren?: JSX.Element;
   timeout?: number;
 
-  children: JSX.Element;
+  children?: JSX.Element;
 }) : JSX.Element {
   const [isShowing, setIsShowing] = useState(false)
   const timer = useRef<number>()
@@ -26,6 +27,9 @@ export default function Debounce({
       timer.current = +setTimeout(() => {
         setIsShowing(true)
       }, timeout)
+    }
+    return () => {
+      clearTimeout(timer.current)
     }
   }, [loading, timeout])
 
@@ -42,7 +46,7 @@ export default function Debounce({
     }
   }
 
-  return children
+  return children ?? <Box />
 }
 
 Debounce.defaultProps = {

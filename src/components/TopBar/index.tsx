@@ -9,20 +9,26 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import BackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate } from 'react-router-dom'
+import FolderOpenIcon from '@mui/icons-material/FolderOpen'
+import HomeIcon from '@mui/icons-material/Home'
 
 type Props = {
   title?: string,
   withBack?: boolean,
   children?: React.ReactNode,
+  withHome?: boolean,
 }
 
 const defaultProps = {
   title: undefined,
   withBack: false,
   children: undefined,
+  withHome: false,
 }
 
-function ResponsiveAppBar({ title, withBack, children }: Props) {
+function ResponsiveAppBar({
+  title, withBack, withHome, children,
+}: Props) {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
@@ -33,6 +39,9 @@ function ResponsiveAppBar({ title, withBack, children }: Props) {
     navigate(-1)
   }
 
+  const handleHome = () => {
+    navigate('/')
+  }
   // return <div />
 
   return (
@@ -54,10 +63,32 @@ function ResponsiveAppBar({ title, withBack, children }: Props) {
             <BackIcon />
           </IconButton>
         )}
+        {withHome && (
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+            onClick={handleHome}
+          >
+            <HomeIcon />
+          </IconButton>
+        )}
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           {innerTitle}
         </Typography>
         {children}
+        {!children && (
+          <IconButton
+            // variant="contained"
+            color="inherit"
+            size="large"
+            onClick={() => navigate('/files')}
+          >
+            <FolderOpenIcon />
+          </IconButton>
+        )}
 
       </Toolbar>
     </AppBar>

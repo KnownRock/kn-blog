@@ -4,32 +4,36 @@ import {
 import { useContext, useEffect, useState } from 'react'
 import InfoIcon from '@mui/icons-material/Info'
 import { t } from 'i18next'
+import { useParams } from 'react-router-dom'
+import pathUtils from 'path'
 import TopBar from '../../components/TopBar'
 import { useAutoLogin } from '../../hooks/user-hooks'
 import { stat } from '../../utils/fs'
 import InfoContext from '../../contexts/InfoContext'
 
-function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string, readOnly:boolean }> }) {
+function Viewer({ FileViewer }: { FileViewer: React.FC<{
+  path:string, readOnly:boolean, setTitle?:(title:string)=>void }> }) {
   const params = new URLSearchParams(window.location.search)
   // TODO: add a conditions for this
-  const path = params.get('path') ?? ''
+  const [title, setTitle] = useState('')
+  const { '*': path = '/' } = useParams()// params.get('path') ?? ''
 
-  const fileName = path.match(/[^/]*$/)?.[0] ?? 'undefined'
+  const fileName = pathUtils.basename(path).replace(/\.[^.]*$/, '') // path.match(/[^/]*$/)?.[0] ?? 'undefined'
   const { loading, success, env } = useAutoLogin()
 
   const { info } = useContext(InfoContext)
 
   async function handleDetails() {
-    const s = await stat(fileName)
+    const s = await stat(path)
     info({
-      title: fileName,
+      title: path,
       component: (
         <>
           <Box sx={{
             padding: '10px 0',
           }}
           >
-            <TextField fullWidth label={t('File size')} value={`${(s.size / 1024 / 1024).toFixed(3)}MB`} disabled />
+            <TextField fullWidth variant="standard" label={t('File size')} value={`${(s.size / 1024 / 1024).toFixed(3)}MB`} disabled />
           </Box>
 
           <Box sx={{
@@ -38,6 +42,7 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string, readOnly:b
           >
             <TextField
               fullWidth
+              variant="standard"
               label={t('LastModified')}
               value={s.lastModified.toLocaleString()}
               disabled
@@ -58,13 +63,13 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string, readOnly:b
       flexDirection: 'column',
     }}
     >
-      <TopBar withBack title={fileName}>
+      <TopBar withBack title={title || fileName}>
         <IconButton color="inherit" onClick={handleDetails}>
           <InfoIcon />
         </IconButton>
       </TopBar>
 
-      {!loading && <FileViewer readOnly={!!env.readOnly} path={path} />}
+      {!loading && <FileViewer setTitle={setTitle} readOnly={!!env.readOnly} path={path} />}
 
     </Box>
   )

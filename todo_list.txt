@@ -13,8 +13,7 @@
 
 ? resolve url return a list of objects to render breadcrumbs
 
-* add a link file use path
-* enhance article editor
+
 * enhance image viewer
 * add a link editor
 * add a .env file in root to manager  ui setting file in user root. permission control ui make different user have different permissions and ui
@@ -45,6 +44,31 @@
 ** optimization path resolve process
 ** unify path handler
 
-* move auto login to app?
++ move auto login to app?
 
 + add a desktop to manager all apps
+
+* article banner upload img directly to dataurl
+
+* add cross bucket file and folder copy function
+
++ add a upload process bar
+
+* add a .knb export to html function
+
+
+* enhance article editor
+* enhance code editor in article editor
+
+* header tree box
+
+** add a blogs managerment paddingLeft
+     to handle drafts to blogs, and index home blog list
+
+
+
+? cors download not work? only jump?
+
+
+* fix file selector
+*** resolve url directly
