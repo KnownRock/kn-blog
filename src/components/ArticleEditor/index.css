@@ -20,3 +20,18 @@
   line-height: 30px;
   font-weight: 400;
 }
+
+.knBlogCodeBlock{
+  font-family: courier, monospace;
+  color: #418A8A;
+  line-height: 1.5;
+  margin: 0;
+  background-color: #F5F5F5;
+  margin-left:20px;
+  margin-right:20px;
+}
+
+figure {
+  margin: 0;
+  padding: 0;
+}

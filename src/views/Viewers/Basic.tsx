@@ -21,7 +21,7 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string, readOnly:b
   const { info } = useContext(InfoContext)
 
   async function handleDetails() {
-    const s = await stat(fileName)
+    const s = await stat(path)
     info({
       title: fileName,
       component: (
@@ -30,7 +30,7 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string, readOnly:b
             padding: '10px 0',
           }}
           >
-            <TextField fullWidth label={t('File size')} value={`${(s.size / 1024 / 1024).toFixed(3)}MB`} disabled />
+            <TextField fullWidth variant="standard" label={t('File size')} value={`${(s.size / 1024 / 1024).toFixed(3)}MB`} disabled />
           </Box>
 
           <Box sx={{
@@ -39,6 +39,7 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string, readOnly:b
           >
             <TextField
               fullWidth
+              variant="standard"
               label={t('LastModified')}
               value={s.lastModified.toLocaleString()}
               disabled

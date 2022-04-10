@@ -1,26 +1,31 @@
 import {
   useContext, useEffect, useRef, useState,
 } from 'react'
-import Editor from '@monaco-editor/react'
 import {
-  Box, Card, CardActionArea, CardContent, CardMedia, Fab, Input, Modal, Typography,
+  Box, Card, CardActionArea, CardContent,
+  CardMedia, Container, Fab, IconButton, Input,
+  Typography,
 } from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save'
 import { useTranslation } from 'react-i18next'
 import { RawDraftContentState } from 'draft-js'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useFileText } from '../../../hooks/fs-hooks'
 import Basic from '../Basic'
-import { getFileAsDataUrl, saveTextFile } from '../../../utils/fs'
+import { saveTextFile } from '../../../utils/fs'
 import InfoContext from '../../../contexts/InfoContext'
 import ArticleEditor from '../../../components/ArticleEditor'
-import FolderSelector from '../../Files/FolderSelector'
 import useLoading from '../../../contexts/LoadingContext'
+import { useSelectImg } from '../../../hooks/useSelectImg'
+
+export const defaultImg = '/static/images/card.jpg'
 
 function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
   const { error: infoError, notify } = useContext(InfoContext)
   const { info } = useContext(InfoContext)
   const { text, loading, error } = useFileText(path || '')
   const { t } = useTranslation()
+  const { getImgAsDataUrl } = useSelectImg()
 
   useLoading(loading)
 
@@ -40,13 +45,13 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
       setTitle(title)
       setDataUrl(dataUrl)
       if (!dataUrl) {
-        setDataUrl('/static/images/card.jpg')
+        setDataUrl(defaultImg)
       }
-
+      editorContentState.current = content
       setContentState(content as RawDraftContentState)
     } catch (er) {
       // infoError(er as Error)
-      setDataUrl('/static/images/card.jpg')
+      setDataUrl(defaultImg)
 
       notify((er as Error).message)
     }
@@ -67,28 +72,48 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
   const handleSelectImg = () => {
     if (readOnly) return
 
-    let newName = ''
+    getImgAsDataUrl().then((dUrl) => {
+      if (!dUrl) {
+        setDataUrl(defaultImg)
+      } else {
+        setDataUrl(dUrl)
+      }
+    })
+  }
+
+  function handleRemoveImg() {
+    if (readOnly) return
 
     info({
-      title: t('Select file'),
-      component: (
-        <FolderSelector type="file" onSelect={(fp) => { newName = fp }} nowPath={newName} />
-      ),
-      noBlur: true,
-
-      isOk: async () => true,
-    }).then(() => {
-      // setImgPath(newName)
-      getFileAsDataUrl(newName).then((parDataUrl) => {
-        setDataUrl(parDataUrl)
-      }).catch((e) => {
-        infoError(e)
-      })
+      title: t('Remove image'),
+      content: t('Are you sure to remove the image?'),
+    }).then((r) => {
+      setDataUrl(defaultImg)
+    }).catch(() => {
+      // do nothing
     })
   }
 
   return (
-    <>
+    <Container
+      maxWidth="md"
+      sx={{
+        paddingLeft: {
+          xs: 0,
+          sm: 0,
+          md: 0,
+          lg: 0,
+          xl: 0,
+        },
+        paddingRight: {
+          xs: 0,
+          sm: 0,
+          md: 0,
+          lg: 0,
+          xl: 0,
+        },
+      }}
+    >
       <Card sx={{
         flexGrow: 1,
         overflow: 'auto',
@@ -100,11 +125,28 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
               xs: 300,
               sm: 400,
               md: 500,
-              lg: 600,
-              xl: 700,
+              lg: 500,
+              xl: 500,
             },
           }}
           >
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {(defaultImg !== dataUrl && !readOnly) && (
+              <IconButton color="warning" onClick={handleRemoveImg}>
+
+                <RemoveCircleOutlineIcon />
+              </IconButton>
+              )}
+            </Box>
             {dataUrl && (
             <CardMedia
               component="img"
@@ -171,7 +213,7 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
         <SaveIcon />
       </Fab>
       )}
-    </>
+    </Container>
 
   )
 }

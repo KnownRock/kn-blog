@@ -149,7 +149,7 @@ export default function Detail({ object }: { object: FileInfo; }) {
             }, {
               label: t('Edit'),
               onClick: () => {
-                navigate(`/text-viewer?path=${object.name}`)
+                navigate(`/text-viewer/${object.name}`)
               },
             }, {
               label: t('Move to'),

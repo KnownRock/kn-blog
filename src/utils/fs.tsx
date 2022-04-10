@@ -90,7 +90,7 @@ export async function resolvePath(path: string, fsPath = '', prefixPath = '', bu
   let linkFileIndex = -1
 
   paths.some((p, index) => {
-    if (p.match(/^[^.]+.s3$/)) {
+    if (p.endsWith('.s3')) {
       linkFileIndex = index
 
       return true
@@ -231,7 +231,7 @@ export async function dir(fsPathRaw:string, recursive = false) :Promise<Array<Fi
 
   return objs.map((obj) => {
     if (obj.name) {
-      if (obj.name.match(/^[^.]+.s3$/)) {
+      if (obj.name.endsWith('.s3')) {
         const displayNameRaw = obj.name.split('/').pop() ?? ''
         const displayName = displayNameRaw
         // displayNameRaw.match(/([^.]+).s3/)?.[1] ?? displayNameRaw

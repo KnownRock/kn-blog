@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import BackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate } from 'react-router-dom'
+import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 
 type Props = {
   title?: string,
@@ -58,6 +59,16 @@ function ResponsiveAppBar({ title, withBack, children }: Props) {
           {innerTitle}
         </Typography>
         {children}
+        {!children && (
+          <IconButton
+            // variant="contained"
+            color="inherit"
+            size="large"
+            onClick={() => navigate('/files')}
+          >
+            <FolderOpenIcon />
+          </IconButton>
+        )}
 
       </Toolbar>
     </AppBar>

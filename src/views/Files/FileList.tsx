@@ -85,7 +85,7 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
                 sm={4}
                 md={3}
                 lg={3}
-                xl={2}
+                xl={3}
               >
                 <Box>
                   <FileButton object={obj} />

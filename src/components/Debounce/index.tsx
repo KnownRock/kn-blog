@@ -28,6 +28,9 @@ export default function Debounce({
         setIsShowing(true)
       }, timeout)
     }
+    return () => {
+      clearTimeout(timer.current)
+    }
   }, [loading, timeout])
 
   if (loading && isShowing) {

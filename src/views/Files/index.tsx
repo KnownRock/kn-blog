@@ -109,7 +109,7 @@ export default function FilesPage() {
             onNavigate={handleNavigate}
             onOpen={handleOnOpen}
             type={env.readOnly ? 'readOnly' : 'browse'}
-            Detail={env.readonly ? Null : Detail}
+            Detail={env.readOnly ? Null : Detail}
             path={path}
           />
         )}
