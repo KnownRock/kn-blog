@@ -21,12 +21,16 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/articles/:id" element={<Article />} />
-        <Route path="/image-viewer" element={<ImageViewer />} />
-        <Route path="/text-viewer" element={<TextViewer />} />
-        <Route path="/video-viewer" element={<VideoViewer />} />
-        <Route path="/article-viewer" element={<ArticleViewer />} />
-        <Route path="me" element={3} />
+
+        <Route path="/image-viewer/*" element={<ImageViewer />} />
+        <Route path="/text-viewer/*" element={<TextViewer />} />
+        <Route path="/video-viewer/*" element={<VideoViewer />} />
+        <Route path="/article-viewer/*" element={<ArticleViewer />} />
+
         <Route path="/files/*" element={<Files />} />
+
+        <Route path="me" element={3} />
+
       </Routes>
     </Info>
   )

@@ -48,3 +48,5 @@
 * move auto login to app?
 
 + add a desktop to manager all apps
+
+* article banner upload img directly to dataurl

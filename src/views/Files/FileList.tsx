@@ -1,8 +1,11 @@
-import { Box, Typography } from '@mui/material'
+import {
+  Accordion, AccordionDetails, AccordionSummary, Box, Typography,
+} from '@mui/material'
 import Grid from '@mui/material/Grid'
 import { useCallback, useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DropzoneRootProps, useDropzone } from 'react-dropzone'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import FileButton from './FileButton'
 import { dir, uploadDropedFileList } from '../../utils/fs'
 import FilesContextRe from '../../contexts/FilesContext'
@@ -62,9 +65,17 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
     >
 
       {groupedObjects.map((group) => (
-        <Box key={group.title}>
-          <Typography variant="subtitle1" component="h6">{group.title}</Typography>
 
+        <Box key={group.title}>
+          <Typography
+            sx={{
+              paddingTop: 2,
+            }}
+            variant="subtitle1"
+            component="h6"
+          >
+            {group.title}
+          </Typography>
           <Grid container spacing={2}>
             {group.objects.map((obj) => (
               <Grid
@@ -74,7 +85,7 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
                 sm={4}
                 md={3}
                 lg={3}
-                xl={3}
+                xl={2}
               >
                 <Box>
                   <FileButton object={obj} />

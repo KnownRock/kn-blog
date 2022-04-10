@@ -61,17 +61,17 @@ export default function FilesPage() {
     }
     if (type === 'file') {
       if (object.name.endsWith('.knb')) {
-        navigate(`/article-viewer?path=${object.name}`)
+        navigate(`/article-viewer/${object.name}`)
       } else {
         const contnetType = object.metadata['content-type']
         if (contnetType.startsWith('image/')) {
-          navigate(`/image-viewer?path=${object.name}`)
+          navigate(`/image-viewer/${object.name}`)
         } else if (contnetType.startsWith('text/') || contnetType.startsWith('application/json')) {
-          navigate(`/text-viewer?path=${object.name}`)
+          navigate(`/text-viewer/${object.name}`)
         } else if (contnetType.startsWith('video/')) {
-          navigate(`/video-viewer?path=${object.name}`)
+          navigate(`/video-viewer/${object.name}`)
         } else {
-          navigate(`/text-viewer?path=${object.name}`)
+          navigate(`/text-viewer/${object.name}`)
         }
       }
       // navigate(`/pic?bucket=${bucket}&file=${object.name}`)

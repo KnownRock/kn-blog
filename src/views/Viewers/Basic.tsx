@@ -4,6 +4,7 @@ import {
 import { useContext, useEffect, useState } from 'react'
 import InfoIcon from '@mui/icons-material/Info'
 import { t } from 'i18next'
+import { useParams } from 'react-router-dom'
 import TopBar from '../../components/TopBar'
 import { useAutoLogin } from '../../hooks/user-hooks'
 import { stat } from '../../utils/fs'
@@ -12,7 +13,7 @@ import InfoContext from '../../contexts/InfoContext'
 function Viewer({ FileViewer }: { FileViewer: React.FC<{ path:string, readOnly:boolean }> }) {
   const params = new URLSearchParams(window.location.search)
   // TODO: add a conditions for this
-  const path = params.get('path') ?? ''
+  const { '*': path = '/' } = useParams()// params.get('path') ?? ''
 
   const fileName = path.match(/[^/]*$/)?.[0] ?? 'undefined'
   const { loading, success, env } = useAutoLogin()

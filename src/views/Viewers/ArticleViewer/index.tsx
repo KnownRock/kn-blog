@@ -14,6 +14,7 @@ import { getFileAsDataUrl, saveTextFile } from '../../../utils/fs'
 import InfoContext from '../../../contexts/InfoContext'
 import ArticleEditor from '../../../components/ArticleEditor'
 import FolderSelector from '../../Files/FolderSelector'
+import useLoading from '../../../contexts/LoadingContext'
 
 function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
   const { error: infoError, notify } = useContext(InfoContext)
@@ -21,7 +22,7 @@ function Viewer({ path, readOnly }: { path: string, readOnly: boolean }) {
   const { text, loading, error } = useFileText(path || '')
   const { t } = useTranslation()
 
-  // useLoading(loading)
+  useLoading(loading)
 
   const [dataUrl, setDataUrl] = useState('')
   const [title, setTitle] = useState('')

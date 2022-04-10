@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import InfoDialog from './InfoDialog'
 
 import InfoContext, { MenuItemInfo, NotificationOptions } from '../../contexts/InfoContext'
+import Debounce from '../Debounce'
 
 type Options = {
   title?: string
@@ -212,24 +213,31 @@ export default function Info({
         ))}
 
         {loading && (
-        <Modal
-          open
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box
-            sx={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        </Modal>
+          <Debounce
+            timeout={300}
+            loading={loading}
+            loadingChildren={(
+              <Modal
+                open
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              </Modal>
+          )}
+          />
+
         )}
 
         {anchorEl && (
