@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next'
 import { RawDraftContentState } from 'draft-js'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import SendIcon from '@mui/icons-material/Send'
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye'
+import EditIcon from '@mui/icons-material/Edit'
 import { useFileText } from '../../../hooks/fs-hooks'
 import Basic from '../Basic'
 import {
@@ -32,6 +34,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
   const { text, loading, error } = useFileText(path || '')
   const { t } = useTranslation()
   const { getImgAsDataUrl } = useSelectImg()
+  const [preview, setPreview] = useState(false)
 
   useLoading(loading)
 
@@ -41,7 +44,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
 
   const [contentState, setContentState] = useState<RawDraftContentState | undefined>(undefined)
 
-  const readOnly = parReadOnly || path.endsWith('.knbe')
+  const readOnly = parReadOnly || path.endsWith('.knbe') || preview
 
   useEffect(() => {
     if (title) {
@@ -224,7 +227,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
         </Box>
         <CardActionArea
           sx={{
-            display: 'none',
+
           }}
           onClick={handleSelectImg}
         >
@@ -290,8 +293,41 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
         </CardContent>
       </Card>
 
-      {!readOnly && (
+      {(!readOnly || preview) && (
         <>
+          {!preview ? (
+            <Tooltip placement="left" title={t('Preview') as string}>
+              <Fab
+                color="primary"
+                aria-label="preview"
+                sx={{
+                  position: 'fixed',
+                  bottom: 152,
+                  right: 16,
+                }}
+                size="large"
+                onClick={() => setPreview(true)}
+              >
+                <RemoveRedEyeIcon />
+              </Fab>
+            </Tooltip>
+          ) : (
+            <Tooltip placement="left" title={t('Edit') as string}>
+              <Fab
+                color="primary"
+                aria-label="preview"
+                sx={{
+                  position: 'fixed',
+                  bottom: 152,
+                  right: 16,
+                }}
+                size="large"
+                onClick={() => setPreview(false)}
+              >
+                <EditIcon />
+              </Fab>
+            </Tooltip>
+          )}
           <Tooltip placement="left" title={t('Export') as string}>
             <Fab
               color="primary"
