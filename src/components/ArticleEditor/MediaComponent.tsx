@@ -23,32 +23,17 @@ function Code({
 }) {
   const [editor, setEditor] = useState<any>(null)
   const container = useRef<HTMLDivElement>(null)
-  const [width, setWidth] = useState(500)
   const [height, setHeight] = useState(22)
   useEffect(() => {
     if (editor && container.current) {
-      // let ignoreEvent = false
       const updateHeight = () => {
-        // debugger
-        // const contentHeight = Math.min(1000, editor.getContentHeight())
-        // container.current.style.width = `${width}px`
-        // container.current.style.height = `${contentHeight}px`
-        // try {
-        //   ignoreEvent = true
-        //   editor.layout({ width, height: contentHeight })
-        // } finally {
-        //   ignoreEvent = false
-        // }
-        // TODO: auto size
         setHeight((editor.getModel().getLineCount() + 1) * 22)
       }
-
       editor.onDidContentSizeChange(updateHeight)
     }
   }, [editor])
 
   return (
-    // <MonacoEditor height={500} />
     <Box
       onKeyDown={(e) => e.stopPropagation()}
       onKeyUp={(e) => e.stopPropagation()}
@@ -61,10 +46,6 @@ function Code({
       <MonacoEditorCom
         onMount={(parEditor) => {
           setEditor(parEditor)
-
-          // setTimeout(() => {
-          //   editor.updateOptions({ })
-          // }, 3000)
         }}
         options={{
           readOnly,
@@ -152,51 +133,6 @@ export default function MediaComponent(props: {
         displayName,
       })
 
-    // function deepCopyEntities(obj:{ [k:string]:any }) {
-    //   const entityKeys = Object.keys(obj)
-    //   const newEntityMap = {}
-    //   entityKeys.forEach((key) => {
-    //     const entity = obj[key]
-    //     const newEntity = {
-    //       ...entity,
-    //       mutability: 'IMMUTABLE',
-    //       data: {
-    //         ...entity.data,
-    //         fileName,
-    //         displayName,
-    //       },
-    //     }
-    //     newEntityMap[key] = newEntity
-    //   })
-    //   return newEntityMap
-    // }
-    // const currentContentState = state.editorState.getCurrentContent()
-    // // debugger
-    // // const clonedContentState = ContentState.createFromBlockArray(
-    // //   currentContentState.getBlockMap().toArray(),
-    // //   JSON.parse(JSON.stringify(currentContentState.getAllEntities().toJS())),
-    // //   // deepCopyEntities(currentContentState.getAllEntities().toJS()),
-    // // )
-    // const clonedContentState = new ContentState({
-    //   blockMap: currentContentState.getBlockMap().toArray(),
-    //   entityMap: deepCopyEntities(currentContentState.getAllEntities().toJS()),
-    // })
-    // console.log(clonedContentState.getAllEntities() == currentContentState.getAllEntities())
-    // debugger
-    // clonedContentState.mergeEntityData(block.getEntityAt(0), {
-    //   type: fileType,
-    //   alt: displayName,
-    //   fileName,
-    //   displayName,
-    // })
-    // // clonedContentState.set
-    // debugger
-    // // TODO: add redo stack
-    // // FIXME: make it immutable
-    // const es = EditorState.push(state.editorState, clonedContentState, 'change-block-data')
-    // setState({
-    //   editorState: es,
-    // })
     setState({
       editorState: state.editorState,
     })
