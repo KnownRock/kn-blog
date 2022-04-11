@@ -1,7 +1,8 @@
 import { useContext, useMemo } from 'react'
 import {
   Box,
-  FormControlLabel, Radio, RadioGroup, TextField,
+  FormControl,
+  FormControlLabel, InputLabel, MenuItem, OutlinedInput, Radio, RadioGroup, Select, TextField,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import pathUtils from 'path'
@@ -227,4 +228,71 @@ export function useSettingFileTypeAndName() {
   }
 
   return { settingFileTypeAndName }
+}
+const languages = [
+  'javascript',
+  'typescript',
+  'css',
+  'html',
+  'json',
+  'markdown',
+  'yaml',
+  'xml',
+  'bash',
+  'python',
+  'ruby',
+  'php',
+  'go',
+  'rust',
+  'java',
+  'c',
+  'c++',
+  'c#',
+  'scala',
+]
+export function useSettingCodeLanguage() {
+  const { info } = useContext(InfoContext)
+  const { t } = useTranslation()
+
+  async function settingCodeLanguage({
+    language,
+  }:{ language:string }): Promise<{
+      language:string,
+    }> {
+    let newLanguage = language
+
+    return info({
+      title: t('Setting code language'),
+      component: (
+        <Box>
+          <FormControl sx={{ m: 1, width: '100%' }}>
+            <InputLabel id="demo-multiple-name-label">{t('Programming language')}</InputLabel>
+            <Select
+              fullWidth
+              variant="standard"
+              labelId="demo-multiple-name-label"
+              id="demo-multiple-name"
+              defaultValue={newLanguage}
+              onChange={(e) => {
+                newLanguage = e.target.value as string
+              }}
+            >
+              {languages.map((lang) => (
+                <MenuItem
+                  key={lang}
+                  value={lang}
+                >
+                  {lang}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+      ),
+    }).then(() => ({
+      language: newLanguage,
+    }))
+  }
+
+  return { settingCodeLanguage }
 }

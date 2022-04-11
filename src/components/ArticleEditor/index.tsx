@@ -173,7 +173,7 @@ function ArticleEditor({
     if (blockType === 'code') {
       const entityKey = state.editorState // from STATE
         .getCurrentContent()
-        .createEntity('atomic', 'IMMUTABLE', {
+        .createEntity('atomic', 'MUTABLE', {
           type: 'code',
           code,
         }).getLastCreatedEntityKey()
@@ -195,7 +195,7 @@ function ArticleEditor({
     if (blockType === 'image') {
       const entityKey = state.editorState // from STATE
         .getCurrentContent()
-        .createEntity('atomic', 'IMMUTABLE', {
+        .createEntity('atomic', 'MUTABLE', {
           src: dataUrl,
           maxHeight: '600px',
           maxWidth: '600px',
@@ -218,7 +218,7 @@ function ArticleEditor({
     if (blockType === 'file') {
       const entityKey = state.editorState
         .getCurrentContent()
-        .createEntity('atomic', 'IMMUTABLE', {
+        .createEntity('atomic', 'MUTABLE', {
           src: dataUrl,
           maxHeight: '600px',
           maxWidth: '600px',
@@ -253,6 +253,8 @@ function ArticleEditor({
     return 'handled' as DraftHandleValue
   }
   const onDrop = (acceptedFiles:File[]) => {
+    if (readOnly) return
+
     convertFilesToDataUrlWithFileName(acceptedFiles)
       .then((files) => files.forEach(
         ({ dataUrl, fileName }) => {

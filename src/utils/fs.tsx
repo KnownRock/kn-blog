@@ -236,6 +236,9 @@ export async function saveDataUrl(
   dataUrl:string,
 ) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
+
+  if (!dataUrl) return minioClient.putObject(bucket, path, '', { 'Content-Type': 'text/plain' })
+
   const byteString = atob(dataUrl.split(',')[1])
   const fileType = dataUrl.match(/^data:([^;]+)/)?.[1]
   const ab = new ArrayBuffer(byteString.length)
