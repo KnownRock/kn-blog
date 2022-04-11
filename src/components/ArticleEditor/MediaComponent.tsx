@@ -107,8 +107,15 @@ function Code({
         onKeyDown={(e) => e.stopPropagation()}
         onKeyUp={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        onFocus={() => { setTempReadOnly(true) }}
-        onBlur={() => setTempReadOnly(false)}
+        onFocus={() => {
+          console.log('focus')
+          setTempReadOnly(true)
+        }}
+        onBlur={() => {
+          // FIXME: direct save causes problems that causes the editor to lose changes
+          console.log('blur')
+          setTempReadOnly(false)
+        }}
         width="80%"
         ref={container}
       >
