@@ -20,7 +20,7 @@ import {
 import InfoContext from '../../../contexts/InfoContext'
 import ArticleEditor from '../../../components/ArticleEditor'
 import useLoading from '../../../contexts/LoadingContext'
-import { useSelectImg } from '../../../hooks/useSelectImg'
+import { useSelectFile, useSelectImg } from '../../../hooks/use-selector'
 import FolderSelector from '../../Files/FolderSelector'
 
 export const defaultImg = '/static/images/card.jpg'
@@ -222,7 +222,12 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
             )}
           </Box>
         </Box>
-        <CardActionArea onClick={handleSelectImg}>
+        <CardActionArea
+          sx={{
+            display: 'none',
+          }}
+          onClick={handleSelectImg}
+        >
           <Box sx={{
             height: {
               xs: 300,
@@ -274,7 +279,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
           )}
 
           <ArticleEditor
-            readonly={readOnly}
+            readOnly={readOnly}
             contentState={contentState}
             onContentStateChange={
             (newValue) => {

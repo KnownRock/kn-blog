@@ -106,7 +106,7 @@ export default function Detail({ object }: { object: FileInfo; }) {
     const link = document.createElement('a')
 
     link.href = dataUrl
-    link.download = object.name
+    link.download = pathUtils.basename(object.name)
     link.click()
   }
 

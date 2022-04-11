@@ -42,8 +42,6 @@ function Form<T extends object>({
 
   ,
 }) {
-  const { t } = useTranslation()
-
   const [form, setForm] = useState(formValue)
 
   const initialErrorDict:{
@@ -113,11 +111,12 @@ export function useShowLogin() {
     (async () => {
       if (show) {
         let form = {
-          url: 'http://192.168.199.252:9000',
+          // url: 'http://192.168.199.252:9000',
+          url: `${import.meta.env.VITE_APP_S3_USE_SSL === 'true' ? 'https' : 'http'}://${import.meta.env.VITE_APP_S3_ENDPOINT}:${import.meta.env.VITE_APP_S3_PORT}`,
           // url: 'http://127.0.0.1:9000',
-          backet: 'root',
-          accessKey: 'minioadmin',
-          secretKey: 'minioadmin',
+          backet: `${import.meta.env.VITE_APP_S3_BUCKET}`,
+          accessKey: `${import.meta.env.VITE_APP_S3_ACCESS_KEY}`,
+          secretKey: `${import.meta.env.VITE_APP_S3_SECRET_KEY}`,
         }
         let ok = false
 

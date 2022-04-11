@@ -72,3 +72,12 @@
 
 * fix file selector
 *** resolve url directly
+
+
+** add a markdown editor
+
+
+** export assets to a resource absolute path to avoid problems with relative path for blog
+
+
+*** .blog file to config blog assets default url
