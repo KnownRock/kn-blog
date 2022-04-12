@@ -14,19 +14,24 @@ import MonacoEditorCom from '@monaco-editor/react'
 import { useTranslation } from 'react-i18next'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ReactMarkdown from 'react-markdown'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+// import { docco, dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+// import dracula from 'react-syntax-highlighter/dist/esm/styles/prism/dracula'
+import { atomDark, dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import SaveIcon from '@mui/icons-material/Save'
 import { useSettingCodeLanguage, useSettingFileTypeAndName } from '../../hooks/use-selector'
 import EditorContext from '../../contexts/EditorContext'
+import InfoContext from '../../contexts/InfoContext'
 
 function BlockTool({
   readOnly, handleRemove, children,
-  handleSetting,
+  handleSetting, handleSave,
 }:{
   readOnly: boolean,
   handleRemove: (e: any) => void,
   children: JSX.Element | JSX.Element[]
   handleSetting?: (e: any) => void,
+  handleSave?: (e: any) => void,
 }): JSX.Element | null {
   const { t } = useTranslation()
   return (
@@ -52,17 +57,14 @@ function BlockTool({
       >
         {!readOnly && (
         <Box sx={{
-          position: 'relative',
+          // position: 'relative',
           width: '100%',
-          height: 0,
+          // height: 0,
           zIndex: 1,
+          display: 'flex',
+          justifyContent: 'center',
         }}
         >
-          <Tooltip title={t('Remove') as string} placement="top">
-            <IconButton color="warning" onClick={handleRemove}>
-              <RemoveCircleOutlineIcon />
-            </IconButton>
-          </Tooltip>
           {handleSetting && (
           <Tooltip title={t('Setting') as string} placement="top">
             <IconButton color="info" onClick={handleSetting}>
@@ -70,6 +72,19 @@ function BlockTool({
             </IconButton>
           </Tooltip>
           )}
+          <Tooltip title={t('Remove') as string} placement="top">
+            <IconButton color="warning" onClick={handleRemove}>
+              <RemoveCircleOutlineIcon />
+            </IconButton>
+          </Tooltip>
+          {handleSave && (
+          <Tooltip title={t('Save') as string} placement="top">
+            <IconButton color="default" onClick={handleSave}>
+              <SaveIcon />
+            </IconButton>
+          </Tooltip>
+          )}
+
         </Box>
         )}
         {children}
@@ -81,10 +96,12 @@ function BlockTool({
 const mdRenderer = {
   code: (props: any) => {
     const { language } = props
+    // debugger
     return (
+
       <SyntaxHighlighter
-        language={language}
-        style={docco}
+        language="js"
+        style={dracula}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
       />
@@ -113,6 +130,16 @@ function Code({
   const container = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState(300)
   const { t } = useTranslation()
+  const { editor: draftEditor } = useContext(EditorContext)
+  const { notify } = useContext(InfoContext)
+  const handleSave = (e: any) => {
+    const code = editor.getValue()
+    setTempReadOnly(false)
+    setTimeout(() => {
+      handleCodeChanged(code)
+      notify(t('Code saved') as string)
+    }, 0)
+  }
   useEffect(() => {
     if (editor && container.current) {
       const updateHeight = () => {
@@ -163,7 +190,7 @@ function Code({
   }
 
   return (
-    <BlockTool handleSetting={data.type === 'code' ? handleCodeSetting : undefined} readOnly={readOnly} handleRemove={handleRemove}>
+    <BlockTool handleSave={handleSave} handleSetting={data.type === 'code' ? handleCodeSetting : undefined} readOnly={readOnly} handleRemove={handleRemove}>
       <Typography
         sx={{
           userSelect: 'none',
@@ -181,8 +208,13 @@ function Code({
         onBlur={() => {
           // FIXME: direct save causes problems that causes the editor to lose changes
           setTempReadOnly(false)
+          setTimeout(() => {
+            if (draftEditor.current) {
+              draftEditor.current.focus()
+            }
+          }, 0)
         }}
-        width="80%"
+        width="100%"
         ref={container}
       >
         <MonacoEditorCom
@@ -192,6 +224,8 @@ function Code({
           options={{
             readOnly,
             fontSize: 16,
+            lineNumbers: 'off',
+            folding: false,
           }}
           defaultValue={data.code}
           onChange={(v) => {
@@ -379,7 +413,7 @@ export default function MediaComponent(props: {
     })
   }, [block, data.displayName, data.fileName,
     data.type, readOnly, setState, settingFileTypeAndName, state.editorState])
-
+  const { editor: draftEditor } = useContext(EditorContext)
   const handleRemove = useCallback((e) => {
     e.stopPropagation()
 
@@ -394,7 +428,12 @@ export default function MediaComponent(props: {
     setState({
       editorState,
     })
-  }, [block, setState, state.editorState])
+    setTimeout(() => {
+      if (draftEditor.current) {
+        draftEditor.current.focus()
+      }
+    }, 0)
+  }, [block, draftEditor, setState, state.editorState])
 
   const imageNode = useMemo(() => {
     if (mediaType === 'image') {

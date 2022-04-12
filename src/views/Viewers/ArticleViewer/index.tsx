@@ -79,19 +79,19 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     }
   }, [infoError, loading, notify, text])
 
-  const handleSave = (saveData: {
+  const handleSave = async (saveData: {
     title?: string,
     dataUrl?: string,
-    content?: RawDraftContentState,
     resourcePath?: string,
     exportPath?: string
   } = {}) => {
-    if (title) setTitle(title)
-    if (dataUrl) setDataUrl(dataUrl)
-    if (contentState) setContentState(contentState)
-    if (resourcePath) setResourcePath(resourcePath)
-    if (exportPath) setExportPath(exportPath)
+    // FIXME: solve monaco editor input loss
+    // await new Promise((resolve) => { setTimeout(resolve, 100) })
 
+    if (saveData.title) setTitle(saveData.title)
+    if (saveData.dataUrl) setDataUrl(saveData.dataUrl)
+    if (saveData.resourcePath) setResourcePath(saveData.resourcePath)
+    if (saveData.exportPath) setExportPath(saveData.exportPath)
     return saveTextFile(path, JSON.stringify({
       content: editorContentState.current,
       dataUrl,
@@ -108,28 +108,22 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     })
   }
 
-  const handleSettings = () => {
-    info({
-      title: t('Settings'),
+  async function getExportPath(): Promise<string> {
+    const newName = exportPath ?? path.replace(/\.knb$/, '')
+    let newExportPath = newName
+    await info({
+      title: t('Setting export path'),
       component: (
-        <Box>
-          <Button>{t('setting resource path')}</Button>
-          <Button>{t('setting export path')}</Button>
-        </Box>
-
+        <FolderSelector type="file" onSelect={(fp) => { newExportPath = fp }} nowPath={`${newName}.knbe`} />
       ),
       noBlur: true,
     })
-
-    handleSave({
-      resourcePath: '',
-      exportPath: '',
-    })
+    console.log(newExportPath)
+    return newExportPath
   }
-
-  async function getResourcePath() {
-    const newName = path.replace(/\.knb$/, '')
-    let newResourcePath = ''
+  async function getResourcePath(): Promise<string> {
+    const newName = resourcePath ?? path.replace(/\.knb$/, '')
+    let newResourcePath = newName
     await info({
       title: t('Setting resource path'),
       component: (
@@ -137,32 +131,57 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
       ),
       noBlur: true,
     })
+    console.log(newResourcePath)
     return newResourcePath
   }
 
+  const handleSettingResourcePath = async () => {
+    const newResourcePath = await getResourcePath()
+
+    if (newResourcePath) {
+      handleSave({
+        resourcePath: newResourcePath,
+      })
+    }
+  }
+
+  const handleSettingExportPath = async () => {
+    const newExportPath = await getExportPath()
+    if (newExportPath) {
+      handleSave({
+        exportPath: newExportPath,
+      })
+    }
+  }
+
+  const handleSettings = () => {
+    info({
+      title: t('Setting'),
+      component: (
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-around',
+        }}
+        >
+          <Button variant="contained" onClick={handleSettingResourcePath}>{t('setting resource path')}</Button>
+          <Button variant="contained" onClick={handleSettingExportPath}>{t('setting export path')}</Button>
+        </Box>
+
+      ),
+      noBlur: true,
+    })
+  }
+
   const handleExport = async () => {
-    const newName = path.replace(/\.knb$/, '')
     let newResourcePath = resourcePath
     if (!newResourcePath) {
-      await info({
-        title: t('Setting resource path'),
-        component: (
-          <FolderSelector type="file" onSelect={(fp) => { newResourcePath = fp }} nowPath={newName} />
-        ),
-        noBlur: true,
-      })
+      newResourcePath = await getResourcePath()
       setResourcePath(newResourcePath)
     }
 
     let newExportPath = exportPath
     if (!newExportPath) {
-      await info({
-        title: t('Export file path'),
-        component: (
-          <FolderSelector type="file" onSelect={(fp) => { newExportPath = fp }} nowPath={`${newName}.knbe`} />
-        ),
-        noBlur: true,
-      })
+      newExportPath = await getExportPath()
       setExportPath(newExportPath)
     }
 
@@ -277,6 +296,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     <Container
       maxWidth="md"
       sx={{
+
         paddingLeft: {
           xs: 0,
           sm: 0,
@@ -304,6 +324,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
           right: 0,
           height: 0,
           zIndex: 1,
+
         }}
         >
           <Box
@@ -349,13 +370,16 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
           </Box>
 
         </CardActionArea>
-        <CardContent>
+        <CardContent sx={{
+          paddingLeft: 5,
+          paddingRight: 5,
+        }}
+        >
 
           {!readOnly ? (
             <Input
               sx={{
                 margin: 0,
-
                 fontFamily: '"Roboto","Helvetica","Arial",sans-serif',
                 fontWeight: 400,
                 fontSize: '2.125rem',
@@ -369,7 +393,17 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
               onChange={(e) => setTitle(e.target.value)}
             />
           ) : (
-            <Typography sx={{ marginBottom: '0.35em' }} variant="h4" component="div">
+            <Typography
+              sx={{
+                color: '#24292f',
+                fontFamily: '"Roboto","Helvetica","Arial",sans-serif',
+                marginBottom: '0.35em',
+                paddingBottom: '0.35em',
+                borderBottom: '1px solid #e0e0e0',
+              }}
+              variant="h4"
+              component="div"
+            >
               {title}
             </Typography>
           )}
@@ -387,7 +421,9 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
       </Card>
 
       {(!readOnly || preview) && (
-        <>
+        <Box sx={{
+        }}
+        >
           {!preview ? (
             <Tooltip placement="left" title={t('Preview') as string}>
               <Fab
@@ -466,7 +502,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
               <SaveIcon />
             </Fab>
           </Tooltip>
-        </>
+        </Box>
 
       )}
     </Container>

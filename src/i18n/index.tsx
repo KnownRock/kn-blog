@@ -103,6 +103,12 @@ i18n
           Preview: '预览',
           Code: '代码',
           'Markdown Block': 'Markdown 块',
+          'setting resource path': '设置资源路径',
+          'setting export path': '设置导出路径',
+          'Code saved': '代码已保存',
+          'Setting resource path': '设置资源路径',
+          'Setting export path': '设置导出路径',
+
         },
       },
     },

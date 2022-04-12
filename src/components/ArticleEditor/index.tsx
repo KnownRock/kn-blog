@@ -57,6 +57,7 @@ function ArticleEditor({
   const { getFileAsDataUrlWithFileName } = useSelectFile()
   const { t } = useTranslation()
   const [tempReadOnly, setTempReadOnly] = useState(false)
+  const editor = useRef<Editor>(null)
   const [state, setState] = useState({
     editorState:
     EditorState.createEmpty(),
@@ -359,7 +360,8 @@ function ArticleEditor({
     setState,
     readOnly,
     setTempReadOnly,
-  }), [state, readOnly])
+    editor,
+  }), [state, readOnly, editor])
 
   const dropProps = useMemo(() => getRootProps(), [getRootProps])
 
@@ -423,6 +425,7 @@ function ArticleEditor({
         ref={editorContainer}
         sx={{
           paddingTop: 1,
+
           ...readOnly ? {} : { backgroundColor: 'rgba(255,255,0,0.1)' },
         }}
         onDrop={dropProps.onDrop}
@@ -437,6 +440,7 @@ function ArticleEditor({
           )}
         <EditorContext.Provider value={editorContext}>
           <Editor
+            ref={editor}
             blockRendererFn={myBlockRenderer}
             readOnly={readOnly || tempReadOnly}
             onBlur={onBlur}

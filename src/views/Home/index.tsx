@@ -3,8 +3,10 @@ import ArticleCard from '../../components/ArticleCard'
 import TopBar from '../../components/TopBar'
 import useLoading from '../../contexts/LoadingContext'
 import { useDir } from '../../hooks/fs-hooks'
+import { useAutoLogin } from '../../hooks/user-hooks'
 
 function Home() {
+  const { loading: loadingForLogin } = useAutoLogin()
   const { loading, error, objects = [] } = useDir('/blogs/home')
   console.log(objects)
   useLoading(loading)
