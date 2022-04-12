@@ -22,10 +22,10 @@ export default function ArticleCard({ object }:{
   const { t } = useTranslation()
 
   const onOpen = useCallback(() => {
-    navigate(`/article-viewer/${object.name}/index.knbe`)
+    navigate(`/article-viewer/${object.name}`)
   }, [navigate, object.name])
 
-  const { text, loading } = useFileText(`${object.name}/index.knbe`)
+  const { text, loading } = useFileText(`${object.name}`)
 
   const { dataUrl, title, summary } = React.useMemo(() => {
     if (!loading) {
