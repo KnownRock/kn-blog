@@ -1,8 +1,6 @@
 import {
-  createContext, Dispatch,
-  SetStateAction, useContext, useEffect, useMemo, useRef, useState,
+  useEffect, useMemo, useRef, useState,
 } from 'react'
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye'
 import {
   AtomicBlockUtils,
   ContentBlock,
@@ -10,10 +8,10 @@ import {
   convertFromRaw,
   convertToRaw,
   DraftEditorCommand, DraftHandleValue,
-  Editor, EditorState, Modifier, RawDraftContentState, RichUtils, SelectionState,
+  Editor, EditorState, RawDraftContentState, RichUtils,
 } from 'draft-js'
 import {
-  Box, Card, IconButton, Input,
+  Box, Card, IconButton,
 } from '@mui/material'
 import { useDropzone } from 'react-dropzone'
 import FormatBold from '@mui/icons-material/FormatBold'
@@ -27,8 +25,8 @@ import './index.css'
 import { useTranslation } from 'react-i18next'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import mime from 'mime'
-import MonacoEditor from '@monaco-editor/react'
-import { useSelectFile, useSelectImg, useSettingFileTypeAndName } from '../../hooks/use-selector'
+import TextSnippetIcon from '@mui/icons-material/TextSnippet'
+import { useSelectFile } from '../../hooks/use-selector'
 import { convertBlobsToDataUrlWithFileName, convertFilesToDataUrlWithFileName } from '../../utils/file-tools'
 import MediaComponent from './MediaComponent'
 import EditorContext from '../../contexts/EditorContext'
@@ -77,21 +75,21 @@ function ArticleEditor({
     left: 0,
   })
 
-  // https://github.com/facebook/draft-js/issues/121
-  function onTab(e : any) {
-    e.preventDefault()
+  // // https://github.com/facebook/draft-js/issues/121
+  // function onTab(e : any) {
+  //   e.preventDefault()
 
-    const currentState = state.editorState
-    const newContentState = Modifier.replaceText(
-      currentState.getCurrentContent(),
-      currentState.getSelection(),
-      '  ',
-    )
+  //   const currentState = state.editorState
+  //   const newContentState = Modifier.replaceText(
+  //     currentState.getCurrentContent(),
+  //     currentState.getSelection(),
+  //     '  ',
+  //   )
 
-    setState({
-      editorState: EditorState.push(currentState, newContentState, 'insert-characters'),
-    })
-  }
+  //   setState({
+  //     editorState: EditorState.push(currentState, newContentState, 'insert-characters'),
+  //   })
+  // }
 
   const [floatVisible, setFloatVisible] = useState(false)
 
@@ -168,14 +166,15 @@ function ArticleEditor({
   }
 
   const addCodeBlock = (
-    { blockType, code }: { blockType: 'code'; code: string },
+    { blockType, code, language = 'text' }: { blockType: 'code' | 'md-block'; code: string; language?: string },
   ) => {
-    if (blockType === 'code') {
+    if (blockType === 'code' || blockType === 'md-block') {
       const entityKey = state.editorState // from STATE
         .getCurrentContent()
         .createEntity('atomic', 'MUTABLE', {
-          type: 'code',
+          type: blockType,
           code,
+          language,
         }).getLastCreatedEntityKey()
 
       // NEW EDITOR STATE
@@ -197,8 +196,8 @@ function ArticleEditor({
         .getCurrentContent()
         .createEntity('atomic', 'MUTABLE', {
           src: dataUrl,
-          maxHeight: '600px',
-          maxWidth: '600px',
+          maxHeight: '80%',
+          maxWidth: '80%',
           type: 'image',
           alt: fileName,
           fileName,
@@ -301,8 +300,19 @@ function ArticleEditor({
     // onChange(RichUtils.toggleBlockType(state.editorState, 'code-block'))
     // getFileAsDataUrlWithFileName().then(({ dataUrl, fileName }) => {
     // if (!dataUrl) return
-    addCodeBlock({ blockType: 'code', code: '123' })
+    // TODO: use api to get text
+    const selectionText = document?.getSelection?.()?.toString() ?? 'image'
+    addCodeBlock({ blockType: 'code', code: selectionText })
     // })
+  }
+
+  const onMdBlockClick = () => {
+    const selectionText = document?.getSelection?.()?.toString() ?? 'image'
+    addCodeBlock({
+      blockType: 'md-block',
+      code: selectionText,
+      language: 'markdown',
+    })
   }
 
   const onBlur = () => {
@@ -339,7 +349,7 @@ function ArticleEditor({
     return type
   }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     noClick: true,
   })
@@ -352,6 +362,37 @@ function ArticleEditor({
   }), [state, readOnly])
 
   const dropProps = useMemo(() => getRootProps(), [getRootProps])
+
+  const menuItems = [{
+    id: 'bold',
+    icon: <FormatBold />,
+    onClick: onBoldClick,
+  }, {
+    id: 'italic',
+    icon: <FormatItalic />,
+    onClick: onItalicClick,
+  }, {
+    id: 'underline',
+    icon: <FormatUnderlined />,
+    onClick: onUnderlineClick,
+  }, {
+    id: 'code',
+    icon: <Code />,
+    onClick: onCodeClick,
+  }, {
+    id: 'md-block',
+    icon: <TextSnippetIcon />,
+    onClick: onMdBlockClick,
+  }, {
+    id: 'img',
+    icon: <Image />,
+    onClick: onImgClick,
+  },
+  {
+    id: 'file',
+    icon: <AttachFileIcon />,
+    onClick: onFileClick,
+  }]
 
   return (
     <Box sx={{
@@ -371,25 +412,12 @@ function ArticleEditor({
 
       >
         {/* https://github.com/facebook/draft-js/issues/275 */}
-        <IconButton onClick={onBoldClick} onMouseDown={(e) => e.preventDefault()}>
-          <FormatBold />
-        </IconButton>
-        <IconButton onClick={onItalicClick} onMouseDown={(e) => e.preventDefault()}>
-          <FormatItalic />
-        </IconButton>
-        <IconButton onClick={onUnderlineClick} onMouseDown={(e) => e.preventDefault()}>
-          <FormatUnderlined />
-        </IconButton>
-        <IconButton onClick={onCodeClick} onMouseDown={(e) => e.preventDefault()}>
-          <Code />
-        </IconButton>
+        {menuItems.map(({ id, icon, onClick }) => (
+          <IconButton key={id} onClick={onClick} onMouseDown={(e) => e.preventDefault()}>
+            {icon}
+          </IconButton>
+        ))}
 
-        <IconButton onClick={onImgClick} onMouseDown={(e) => e.preventDefault()}>
-          <Image />
-        </IconButton>
-        <IconButton onClick={onFileClick} onMouseDown={(e) => e.preventDefault()}>
-          <AttachFileIcon />
-        </IconButton>
       </Card>
       <Box
         ref={editorContainer}

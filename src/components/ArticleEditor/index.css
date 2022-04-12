@@ -1,4 +1,4 @@
-.public-DraftEditorPlaceholder-root{
+/* .public-DraftEditorPlaceholder-root{
   color: #999;
   position: absolute; 
   pointer-events: none; 
@@ -30,8 +30,8 @@
   margin-left:20px;
   margin-right:20px;
 }
-
+*/
 figure {
   margin: 0;
   padding: 0;
-}
+} 

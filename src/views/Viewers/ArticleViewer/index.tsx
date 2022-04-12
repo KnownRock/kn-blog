@@ -2,8 +2,9 @@ import {
   useContext, useEffect, useRef, useState,
 } from 'react'
 import {
-  Box, Card, CardActionArea, CardContent,
+  Box, Button, Card, CardActionArea, CardContent,
   CardMedia, Container, Fab, IconButton, Input,
+  TextField,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -14,6 +15,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import SendIcon from '@mui/icons-material/Send'
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye'
 import EditIcon from '@mui/icons-material/Edit'
+import SettingsIcon from '@mui/icons-material/Settings'
 import { useFileText } from '../../../hooks/fs-hooks'
 import Basic from '../Basic'
 import {
@@ -40,6 +42,8 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
 
   const [dataUrl, setDataUrl] = useState('')
   const [title, setTitle] = useState('')
+  const [resourcePath, setResourcePath] = useState('')
+  const [exportPath, setExportPath] = useState('')
   const editorContentState = useRef<RawDraftContentState>()
 
   const [contentState, setContentState] = useState<RawDraftContentState | undefined>(undefined)
@@ -60,6 +64,8 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
       const { title, dataUrl, content } = blogObj
       setTitle(title)
       setDataUrl(dataUrl)
+      setResourcePath(blogObj.resourcePath)
+      setExportPath(blogObj.exportPath)
       if (!dataUrl) {
         setDataUrl(defaultImg)
       }
@@ -73,30 +79,102 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     }
   }, [infoError, loading, notify, text])
 
-  const handleSave = () => {
-    saveTextFile(path, JSON.stringify({
+  const handleSave = (saveData: {
+    title?: string,
+    dataUrl?: string,
+    content?: RawDraftContentState,
+    resourcePath?: string,
+    exportPath?: string
+  } = {}) => {
+    if (title) setTitle(title)
+    if (dataUrl) setDataUrl(dataUrl)
+    if (contentState) setContentState(contentState)
+    if (resourcePath) setResourcePath(resourcePath)
+    if (exportPath) setExportPath(exportPath)
+
+    return saveTextFile(path, JSON.stringify({
       content: editorContentState.current,
       dataUrl,
       title,
-    })).then(() => notify({
-      message: t('File saved'),
-    })).catch((e) => {
+      resourcePath,
+      exportPath,
+      ...saveData,
+    })).then(() => {
+      notify({
+        message: t('File saved'),
+      })
+    }).catch((e) => {
       infoError(e)
     })
   }
 
-  const handleExport = async () => {
-    let newName = path.replace(/\.knb$/, '')
-
-    await info({
-      title: t('Export'),
+  const handleSettings = () => {
+    info({
+      title: t('Settings'),
       component: (
-        <FolderSelector type="file" onSelect={(fp) => { newName = fp }} nowPath={newName} />
+        <Box>
+          <Button>{t('setting resource path')}</Button>
+          <Button>{t('setting export path')}</Button>
+        </Box>
+
       ),
       noBlur: true,
     })
 
-    const { bucket, path: rPath, minioClient } = await resolvePath(newName)
+    handleSave({
+      resourcePath: '',
+      exportPath: '',
+    })
+  }
+
+  async function getResourcePath() {
+    const newName = path.replace(/\.knb$/, '')
+    let newResourcePath = ''
+    await info({
+      title: t('Setting resource path'),
+      component: (
+        <FolderSelector type="file" onSelect={(fp) => { newResourcePath = fp }} nowPath={newName} />
+      ),
+      noBlur: true,
+    })
+    return newResourcePath
+  }
+
+  const handleExport = async () => {
+    const newName = path.replace(/\.knb$/, '')
+    let newResourcePath = resourcePath
+    if (!newResourcePath) {
+      await info({
+        title: t('Setting resource path'),
+        component: (
+          <FolderSelector type="file" onSelect={(fp) => { newResourcePath = fp }} nowPath={newName} />
+        ),
+        noBlur: true,
+      })
+      setResourcePath(newResourcePath)
+    }
+
+    let newExportPath = exportPath
+    if (!newExportPath) {
+      await info({
+        title: t('Export file path'),
+        component: (
+          <FolderSelector type="file" onSelect={(fp) => { newExportPath = fp }} nowPath={`${newName}.knbe`} />
+        ),
+        noBlur: true,
+      })
+      setExportPath(newExportPath)
+    }
+
+    // FIXME: after new value settled
+    // await new Promise((resolve) => { setTimeout(resolve, 100) })
+
+    await handleSave({
+      resourcePath: newResourcePath,
+      exportPath: newExportPath,
+    })
+
+    const { bucket, path: rPath, minioClient } = await resolvePath(newResourcePath)
 
     const { protocol, host, port } = minioClient as unknown as {
       protocol: string, host: string, port: number,
@@ -104,7 +182,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
 
     const urlPrefix = `${protocol}//${host}:${port}/${bucket}/${rPath}`
     if (dataUrl !== defaultImg) {
-      await saveDataUrl(`${newName}/bg`, dataUrl)
+      await saveDataUrl(`${newResourcePath}/bg`, dataUrl)
     }
     const entityMap = editorContentState.current?.entityMap
 
@@ -125,10 +203,24 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
       if (!entity) return
 
       const { data } = entity
+
+      if (data.type !== 'file' && data.type !== 'image') {
+        newEntityMap[entityKey] = {
+          ...entity,
+          data: {
+            ...entity.data,
+          },
+        }
+
+        return
+      }
+
       const dataUrl1 = data.src
-      const url = `${urlPrefix}/${entityKey}`
+
+      // TODO: add a map to use filename directly
+      const url = `${urlPrefix}/${entityKey}${data.fileName ? `_${data.fileName}` : ''}`
       // eslint-disable-next-line consistent-return
-      return saveDataUrl(`${newName}/${entityKey}`, dataUrl1)
+      return saveDataUrl(`${newResourcePath}/${entityKey}${data.fileName ? `_${data.fileName}` : ''}`, dataUrl1)
         .then(() => {
           newEntityMap[entityKey] = {
             ...entity,
@@ -141,7 +233,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     })
 
     await Promise.all(promises)
-    await saveText(`${newName}/index.knbe`, JSON.stringify({
+    await saveText(`${newExportPath}`, JSON.stringify({
       content: {
         ...editorContentState.current,
         entityMap: newEntityMap,
@@ -203,7 +295,8 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     >
       <Card sx={{
         flexGrow: 1,
-        overflow: 'auto',
+        overflowY: 'auto',
+        overflowX: 'hidden',
       }}
       >
         <Box sx={{
@@ -328,6 +421,21 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
               </Fab>
             </Tooltip>
           )}
+          <Tooltip placement="left" title={t('Setting') as string}>
+            <Fab
+              color="primary"
+              aria-label="export"
+              sx={{
+                position: 'fixed',
+                bottom: 220,
+                right: 16,
+              }}
+              size="large"
+              onClick={handleSettings}
+            >
+              <SettingsIcon />
+            </Fab>
+          </Tooltip>
           <Tooltip placement="left" title={t('Export') as string}>
             <Fab
               color="primary"
@@ -353,7 +461,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
                 right: 16,
               }}
               size="large"
-              onClick={handleSave}
+              onClick={() => handleSave()}
             >
               <SaveIcon />
             </Fab>

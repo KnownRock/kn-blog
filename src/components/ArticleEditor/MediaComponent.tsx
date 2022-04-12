@@ -6,13 +6,16 @@ import {
   ContentState, EditorState,
 } from 'draft-js'
 import {
-  Box, Button, IconButton, Input, Tooltip,
+  Box, Button, IconButton, Input, Tooltip, Typography,
 } from '@mui/material'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import MonacoEditorCom from '@monaco-editor/react'
 import { useTranslation } from 'react-i18next'
 import SettingsIcon from '@mui/icons-material/Settings'
+import ReactMarkdown from 'react-markdown'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { useSettingCodeLanguage, useSettingFileTypeAndName } from '../../hooks/use-selector'
 import EditorContext from '../../contexts/EditorContext'
 
@@ -52,6 +55,7 @@ function BlockTool({
           position: 'relative',
           width: '100%',
           height: 0,
+          zIndex: 1,
         }}
         >
           <Tooltip title={t('Remove') as string} placement="top">
@@ -73,6 +77,23 @@ function BlockTool({
     </Box>
   )
 }
+
+const mdRenderer = {
+  code: (props: any) => {
+    const { language } = props
+    return (
+      <SyntaxHighlighter
+        language={language}
+        style={docco}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+      />
+
+    )
+  },
+
+}
+
 function Code({
   handleCodeSetting,
   handleCodeChanged,
@@ -88,10 +109,10 @@ function Code({
   readOnly: boolean,
   data: any
 }) {
-  console.log(data)
   const [editor, setEditor] = useState<any>(null)
   const container = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState(300)
+  const { t } = useTranslation()
   useEffect(() => {
     if (editor && container.current) {
       const updateHeight = () => {
@@ -101,19 +122,64 @@ function Code({
     }
   }, [editor])
 
+  if (readOnly) {
+    if (data.type === 'code') {
+      return (
+        <Box
+          sx={{
+            alignItems: 'left',
+            justifyContent: 'left',
+            width: '100%',
+          }}
+        >
+
+          <ReactMarkdown
+            components={mdRenderer}
+          >
+            {`\`\`\`${data.language}\n${data.code}\n\`\`\``}
+          </ReactMarkdown>
+
+        </Box>
+      )
+    }
+
+    if (data.type === 'md-block') {
+      return (
+        <Box
+          sx={{
+            alignItems: 'left',
+            justifyContent: 'left',
+            width: '100%',
+          }}
+        >
+
+          <ReactMarkdown components={mdRenderer}>
+            {data.code}
+          </ReactMarkdown>
+
+        </Box>
+      )
+    }
+  }
+
   return (
-    <BlockTool handleSetting={handleCodeSetting} readOnly={readOnly} handleRemove={handleRemove}>
+    <BlockTool handleSetting={data.type === 'code' ? handleCodeSetting : undefined} readOnly={readOnly} handleRemove={handleRemove}>
+      <Typography
+        sx={{
+          userSelect: 'none',
+        }}
+        variant="caption"
+        color="textSecondary"
+      />
       <Box
         onKeyDown={(e) => e.stopPropagation()}
         onKeyUp={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         onFocus={() => {
-          console.log('focus')
           setTempReadOnly(true)
         }}
         onBlur={() => {
           // FIXME: direct save causes problems that causes the editor to lose changes
-          console.log('blur')
           setTempReadOnly(false)
         }}
         width="80%"
@@ -136,6 +202,15 @@ function Code({
           height={height}
         />
       </Box>
+      <Typography
+        sx={{
+          userSelect: 'none',
+        }}
+        variant="caption"
+        color="textSecondary"
+      >
+        {data.type === 'code' ? `${t('Code')}[${data.language}]` : t('Markdown Block')}
+      </Typography>
     </BlockTool>
 
   )
@@ -163,7 +238,16 @@ function Image({
         height={data.height}
         width={data.width}
       />
-      <span>{data.displayName || data.alt}</span>
+
+      <Typography
+        sx={{
+          userSelect: 'none',
+        }}
+        variant="caption"
+        color="textSecondary"
+      >
+        {data.displayName || data.alt}
+      </Typography>
     </BlockTool>
   )
 }
@@ -348,7 +432,7 @@ export default function MediaComponent(props: {
 
   const codeNode = useMemo(() => {
     // https://stackoverflow.com/questions/58898700/how-to-enter-text-in-a-text-input-inside-an-atomic-block
-    if (mediaType === 'code') {
+    if (mediaType === 'code' || mediaType === 'md-block') {
       return (
         <Code
           handleCodeSetting={handleCodeSetting}

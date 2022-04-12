@@ -81,3 +81,18 @@
 
 
 *** .blog file to config blog assets default url
+
+** light kbn reader
+
+
+** fix html drop in
+
+* blog add a id prop to locate resource path?
+  or direct set a resource path?
+
+
+*** make a dialog to preview blog
+
++ convert block to a markdown block?
+
++ pure markdown wysiwyg editor?

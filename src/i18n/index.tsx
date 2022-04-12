@@ -101,6 +101,8 @@ i18n
           Setting: '设置',
           Remove: '移除',
           Preview: '预览',
+          Code: '代码',
+          'Markdown Block': 'Markdown 块',
         },
       },
     },
