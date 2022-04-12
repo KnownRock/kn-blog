@@ -96,3 +96,12 @@
 + convert block to a markdown block?
 
 + pure markdown wysiwyg editor?
+
+
+* add url file adder
+
+
+* monaco editor intents setting
+
++ move all style to theme
+* solve monaco editor input loss, add a save button ?
