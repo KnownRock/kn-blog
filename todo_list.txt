@@ -117,3 +117,5 @@
 ? add a blog link file 
 
 * add a img title
+
+* move blog part to a blog app, and load it in home page by .env file config
