@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect, useMemo, useRef, useState,
 } from 'react'
 import {
@@ -11,7 +12,7 @@ import {
   Editor, EditorState, RawDraftContentState, RichUtils,
 } from 'draft-js'
 import {
-  Box, Card, IconButton,
+  Box, Card, IconButton, Menu, MenuItem, Typography,
 } from '@mui/material'
 import { useDropzone } from 'react-dropzone'
 import FormatBold from '@mui/icons-material/FormatBold'
@@ -26,11 +27,26 @@ import { useTranslation } from 'react-i18next'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import mime from 'mime'
 import TextSnippetIcon from '@mui/icons-material/TextSnippet'
+import ShortTextIcon from '@mui/icons-material/ShortText'
 import { useSelectFile } from '../../hooks/use-selector'
 import { convertBlobsToDataUrlWithFileName, convertFilesToDataUrlWithFileName } from '../../utils/file-tools'
 import MediaComponent from './MediaComponent'
 import EditorContext from '../../contexts/EditorContext'
 
+function HeaderIcon({
+  str,
+}:{
+  str:string
+}) {
+  return (
+    <Typography
+      variant="h6"
+      className="knBlogHeader"
+    >
+      {str}
+    </Typography>
+  )
+}
 function myBlockRenderer(contentBlock: ContentBlock) {
   const type = contentBlock.getType()
   if (type === 'atomic') {
@@ -95,6 +111,21 @@ function ArticleEditor({
   // }
 
   const [floatVisible, setFloatVisible] = useState(false)
+
+  const onWheel = useCallback(
+    () => {
+      // if (e.deltaY > 0) {
+      setFloatVisible(false)
+      // }
+    },
+    [],
+  )
+  useEffect(() => {
+    window.addEventListener('wheel', onWheel)
+    return () => {
+      window.removeEventListener('wheel', onWheel)
+    }
+  }, [onWheel])
 
   useEffect(() => {
     let newState = EditorState.createEmpty()
@@ -299,6 +330,29 @@ function ArticleEditor({
     onChange(RichUtils.toggleInlineStyle(state.editorState, 'UNDERLINE'))
   }
 
+  const onHeaderOneClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-one'))
+  }
+  const onHeaderTwoClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-two'))
+  }
+  const onHeaderThreeClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-three'))
+  }
+  const onHeaderFourClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-four'))
+  }
+  const onHeaderFiveClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-five'))
+  }
+  const onHeaderSixClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-six'))
+  }
+
+  const onBlockquoteClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'blockquote'))
+  }
+
   const onCodeClick = () => {
     // onChange(RichUtils.toggleBlockType(state.editorState, 'code-block'))
     // getFileAsDataUrlWithFileName().then(({ dataUrl, fileName }) => {
@@ -367,7 +421,36 @@ function ArticleEditor({
 
   const dropProps = useMemo(() => getRootProps(), [getRootProps])
 
-  const menuItems = [{
+  const menuItems = [[{
+    id: 'h1',
+    icon: <HeaderIcon str="H1" />,
+    onClick: onHeaderOneClick,
+  }, {
+    id: 'h2',
+    icon: <HeaderIcon str="H2" />,
+    onClick: onHeaderTwoClick,
+  }, {
+    id: 'h3',
+    icon: <HeaderIcon str="H3" />,
+    onClick: onHeaderThreeClick,
+  }, {
+    id: 'h4',
+    icon: <HeaderIcon str="H4" />,
+    onClick: onHeaderFourClick,
+  }, {
+    id: 'h5',
+    icon: <HeaderIcon str="H5" />,
+    onClick: onHeaderFiveClick,
+  }, {
+    id: 'h6',
+    icon: <HeaderIcon str="H6" />,
+    onClick: onHeaderSixClick,
+  },
+  {
+    id: 'blockquote',
+    icon: <ShortTextIcon />,
+    onClick: onBlockquoteClick,
+  }], [{
     id: 'bold',
     icon: <FormatBold />,
     onClick: onBoldClick,
@@ -396,24 +479,26 @@ function ArticleEditor({
     id: 'file',
     icon: <AttachFileIcon />,
     onClick: onFileClick,
-  }]
+  }]]
 
   return (
-    <Box sx={{
-    }}
+    <Box
+      sx={{
+      }}
+
     >
+
       <Card
         sx={{
-
           transition: 'all 0.2s ease-in-out',
           position: 'fixed',
           zIndex: floatVisible ? 10 : -1,
           top: {
             xs: `${floatPosition.top + floatPosition.height}px`,
             sx: `${floatPosition.top + floatPosition.height}px`,
-            md: `${floatPosition.top - 40}px`,
-            lg: `${floatPosition.top - 40}px`,
-            xl: `${floatPosition.top - 40}px`,
+            md: `${floatPosition.top - 80}px`,
+            lg: `${floatPosition.top - 80}px`,
+            xl: `${floatPosition.top - 80}px`,
 
           },
           left: {
@@ -425,16 +510,42 @@ function ArticleEditor({
 
           },
           opacity: floatVisible ? 1 : 0,
-          height: '40px',
+          height: '80px',
         }}
 
       >
-        {/* https://github.com/facebook/draft-js/issues/275 */}
-        {menuItems.map(({ id, icon, onClick }) => (
-          <IconButton key={id} onClick={onClick} onMouseDown={(e) => e.preventDefault()}>
-            {icon}
-          </IconButton>
-        ))}
+        <Box>
+          {/* https://github.com/facebook/draft-js/issues/275 */}
+          {menuItems[0].map(({ id, icon, onClick }) => (
+            <IconButton
+              sx={{
+                width: '40px',
+                height: '40px',
+              }}
+              key={id}
+              onClick={onClick}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {icon}
+            </IconButton>
+          ))}
+        </Box>
+        <Box>
+          {/* https://github.com/facebook/draft-js/issues/275 */}
+          {menuItems[1].map(({ id, icon, onClick }) => (
+            <IconButton
+              sx={{
+                width: '40px',
+                height: '40px',
+              }}
+              key={id}
+              onClick={onClick}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {icon}
+            </IconButton>
+          ))}
+        </Box>
 
       </Card>
       <Box
