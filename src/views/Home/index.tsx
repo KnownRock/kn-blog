@@ -19,7 +19,7 @@ function Home() {
 
   return (
     <Box sx={{ }}>
-      <TopBar title={env?.title || undefined} />
+      <TopBar title={env?.title ?? ''} />
       <Container
         maxWidth="md"
         sx={{
