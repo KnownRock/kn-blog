@@ -124,3 +124,7 @@
 * a s3 version key expired system, when login, upload a key to store random key in random url,
   then encrypt the config with key.
   or using a third party openid provider to login?
+
+
++ using OpenResty proxy react application which is hold by a s3 bucket.
+  generate proxy by react static files. To make router work.
