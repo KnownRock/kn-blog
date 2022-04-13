@@ -110,3 +110,10 @@
 ? resolve url directly
 ** file list viewer
 *** fix file selector
+
+
+? block change use block text not selection text or add a new block?
+
+? add a blog link file 
+
+* add a img title
