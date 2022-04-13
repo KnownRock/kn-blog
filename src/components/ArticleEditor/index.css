@@ -1,9 +1,9 @@
-/* .public-DraftEditorPlaceholder-root{
+.public-DraftEditorPlaceholder-root{
   color: #999;
   position: absolute; 
   pointer-events: none; 
 }
-
+/* 
 .knBlogBlockquote {
   color: #999;
   font-family: 'Hoefler Text', Georgia, serif;

@@ -31,7 +31,7 @@ export const defaultImg = '/static/images/card.jpg'
 
 function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
 { path: string, readOnly: boolean, setTitle?:(title:string)=>void }) {
-  const { error: infoError, notify } = useContext(InfoContext)
+  const { error: infoError, notify, setLoading } = useContext(InfoContext)
   const { info } = useContext(InfoContext)
   const { text, loading, error } = useFileText(path || '')
   const { t } = useTranslation()
@@ -87,38 +87,45 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
   } = {}) => {
     // FIXME: solve monaco editor input loss
     // await new Promise((resolve) => { setTimeout(resolve, 100) })
-
-    if (saveData.title) setTitle(saveData.title)
-    if (saveData.dataUrl) setDataUrl(saveData.dataUrl)
-    if (saveData.resourcePath) setResourcePath(saveData.resourcePath)
-    if (saveData.exportPath) setExportPath(saveData.exportPath)
-    return saveTextFile(path, JSON.stringify({
-      content: editorContentState.current,
-      dataUrl,
-      title,
-      resourcePath,
-      exportPath,
-      ...saveData,
-    })).then(() => {
-      notify({
-        message: t('File saved'),
+    try {
+      setLoading(true)
+      if (saveData.title) setTitle(saveData.title)
+      if (saveData.dataUrl) setDataUrl(saveData.dataUrl)
+      if (saveData.resourcePath) setResourcePath(saveData.resourcePath)
+      if (saveData.exportPath) setExportPath(saveData.exportPath)
+      return await saveTextFile(path, JSON.stringify({
+        content: editorContentState.current,
+        dataUrl,
+        title,
+        resourcePath,
+        exportPath,
+        ...saveData,
+      })).then(() => {
+        notify({
+          message: t('File saved'),
+        })
+      }).catch((e) => {
+        infoError(e)
       })
-    }).catch((e) => {
-      infoError(e)
-    })
+    } catch (e) {
+      infoError(e as Error)
+    } finally {
+      setLoading(false)
+    }
+
+    return 'ok'
   }
 
   async function getExportPath(): Promise<string> {
     const newName = exportPath ?? path.replace(/\.knb$/, '')
-    let newExportPath = newName
+    let newExportPath = `${newName}.knbe`
     await info({
       title: t('Setting export path'),
       component: (
-        <FolderSelector type="file" onSelect={(fp) => { newExportPath = fp }} nowPath={`${newName}.knbe`} />
+        <FolderSelector type="file" onSelect={(fp) => { newExportPath = fp }} nowPath={newExportPath} />
       ),
       noBlur: true,
     })
-    console.log(newExportPath)
     return newExportPath
   }
   async function getResourcePath(): Promise<string> {
@@ -127,11 +134,10 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     await info({
       title: t('Setting resource path'),
       component: (
-        <FolderSelector type="file" onSelect={(fp) => { newResourcePath = fp }} nowPath={newName} />
+        <FolderSelector type="file" onSelect={(fp) => { newResourcePath = fp }} nowPath={newResourcePath} />
       ),
       noBlur: true,
     })
-    console.log(newResourcePath)
     return newResourcePath
   }
 
@@ -188,83 +194,93 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
     // FIXME: after new value settled
     // await new Promise((resolve) => { setTimeout(resolve, 100) })
 
-    await handleSave({
-      resourcePath: newResourcePath,
-      exportPath: newExportPath,
-    })
+    try {
+      setLoading(true)
 
-    const { bucket, path: rPath, minioClient } = await resolvePath(newResourcePath)
-
-    const { protocol, host, port } = minioClient as unknown as {
-      protocol: string, host: string, port: number,
-    }
-
-    const urlPrefix = `${protocol}//${host}:${port}/${bucket}/${rPath}`
-    if (dataUrl !== defaultImg) {
-      await saveDataUrl(`${newResourcePath}/bg`, dataUrl)
-    }
-    const entityMap = editorContentState.current?.entityMap
-
-    const entityKeys : Array<number> = []
-    let summary = ''
-    editorContentState.current?.blocks.forEach((block) => {
-      summary += block.text
-
-      Array.from(block.entityRanges).forEach((entityRange) => {
-        const entityKey = entityRange.key
-        summary += block.text.substr(entityRange.offset, entityRange.length)
-        entityKeys.push(entityKey)
+      await handleSave({
+        resourcePath: newResourcePath,
+        exportPath: newExportPath,
       })
-    })
-    const newEntityMap : typeof entityMap = {}
-    const promises = entityKeys.map((entityKey) => {
-      const entity = entityMap?.[entityKey]
-      if (!entity) return
 
-      const { data } = entity
+      const { bucket, path: rPath, minioClient } = await resolvePath(newResourcePath)
 
-      if (data.type !== 'file' && data.type !== 'image') {
-        newEntityMap[entityKey] = {
-          ...entity,
-          data: {
-            ...entity.data,
-          },
-        }
-
-        return
+      const { protocol, host, port } = minioClient as unknown as {
+        protocol: string, host: string, port: number,
       }
 
-      const dataUrl1 = data.src
+      const urlPrefix = `${protocol}//${host}:${port}/${bucket}/${rPath}`
+      if (dataUrl !== defaultImg) {
+        await saveDataUrl(`${newResourcePath}/bg`, dataUrl)
+      }
+      const entityMap = editorContentState.current?.entityMap
 
-      // TODO: add a map to use filename directly
-      const url = `${urlPrefix}/${entityKey}${data.fileName ? `_${data.fileName}` : ''}`
-      // eslint-disable-next-line consistent-return
-      return saveDataUrl(`${newResourcePath}/${entityKey}${data.fileName ? `_${data.fileName}` : ''}`, dataUrl1)
-        .then(() => {
+      const entityKeys : Array<number> = []
+      let summary = ''
+      editorContentState.current?.blocks.forEach((block) => {
+        summary += block.text
+
+        Array.from(block.entityRanges).forEach((entityRange) => {
+          const entityKey = entityRange.key
+          summary += block.text.substr(entityRange.offset, entityRange.length)
+          entityKeys.push(entityKey)
+        })
+      })
+      const newEntityMap : typeof entityMap = {}
+      const promises = entityKeys.map((entityKey) => {
+        const entity = entityMap?.[entityKey]
+        if (!entity) return
+
+        const { data } = entity
+
+        if (data.type !== 'file' && data.type !== 'image') {
           newEntityMap[entityKey] = {
             ...entity,
             data: {
               ...entity.data,
-              src: url,
             },
           }
-        })
-    })
 
-    await Promise.all(promises)
-    await saveText(`${newExportPath}`, JSON.stringify({
-      content: {
-        ...editorContentState.current,
-        entityMap: newEntityMap,
-      },
-      dataUrl: (dataUrl !== defaultImg) ? `${urlPrefix}/bg` : '',
-      title,
-      summary: summary.slice(0, 500),
-    })).then(() => notify({
-      message: t('Blog exported'),
-    })).catch((e) => {
-      infoError(e)
-    })
+          return
+        }
+
+        const dataUrl1 = data.src
+
+        // TODO: add a map to use filename directly
+        const url = `${urlPrefix}/${entityKey}${data.fileName ? `_${data.fileName}` : ''}`
+        // eslint-disable-next-line consistent-return
+        return saveDataUrl(`${newResourcePath}/${entityKey}${data.fileName ? `_${data.fileName}` : ''}`, dataUrl1)
+          .then(() => {
+            newEntityMap[entityKey] = {
+              ...entity,
+              data: {
+                ...entity.data,
+                src: url,
+              },
+            }
+          })
+      })
+
+      await Promise.all(promises)
+      await saveText(`${newExportPath}`, JSON.stringify({
+        content: {
+          ...editorContentState.current,
+          entityMap: newEntityMap,
+        },
+        dataUrl: (dataUrl !== defaultImg) ? `${urlPrefix}/bg` : '',
+        title,
+        summary: summary.slice(0, 500),
+      })).then(() => {
+        notify({
+          message: t('Blog exported'),
+        })
+      }).catch((e) => {
+        infoError(e)
+      })
+    } catch (e) {
+      infoError(e as Error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSelectImg = () => {
@@ -311,6 +327,7 @@ function Viewer({ path, readOnly: parReadOnly, setTitle: setTopTitle }:
           lg: 0,
           xl: 0,
         },
+        paddingBottom: '24px',
       }}
     >
       <Card sx={{
