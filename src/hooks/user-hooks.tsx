@@ -115,8 +115,8 @@ export function useShowLogin() {
           url: `${import.meta.env.VITE_APP_S3_USE_SSL === 'true' ? 'https' : 'http'}://${import.meta.env.VITE_APP_S3_ENDPOINT}:${import.meta.env.VITE_APP_S3_PORT}`,
           // url: 'http://127.0.0.1:9000',
           backet: `${import.meta.env.VITE_APP_S3_BUCKET}`,
-          accessKey: `${import.meta.env.VITE_APP_S3_ACCESS_KEY}`,
-          secretKey: `${import.meta.env.VITE_APP_S3_SECRET_KEY}`,
+          accessKey: '', // `${import.meta.env.VITE_APP_S3_ACCESS_KEY}`,
+          secretKey: '', // `${import.meta.env.VITE_APP_S3_SECRET_KEY}`,
         }
         let ok = false
 
@@ -154,7 +154,7 @@ export function useShowLogin() {
 
         await info({
           title: t('Login'),
-          noClose: true,
+          noBlur: true,
           async isOk() {
             if (!ok) {
               info({

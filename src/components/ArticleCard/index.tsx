@@ -21,6 +21,8 @@ export default function ArticleCard({ object }:{
   const navigate = useNavigate()
   const { t } = useTranslation()
 
+  const [error, setError] = React.useState(false)
+
   const onOpen = useCallback(() => {
     navigate(`/article-viewer/${object.name}`)
   }, [navigate, object.name])
@@ -28,12 +30,20 @@ export default function ArticleCard({ object }:{
   const { text, loading } = useFileText(`${object.name}`)
 
   const { dataUrl, title, summary } = React.useMemo(() => {
-    if (!loading) {
-      const d = JSON.parse(text)
-      return d as {
-        dataUrl: string
-        title:string
-        summary: string
+    if (!loading || error) {
+      try {
+        const d = JSON.parse(text)
+        return d as {
+          dataUrl: string
+          title:string
+          summary: string
+        }
+      } catch (e) {
+        return {
+          dataUrl: '',
+          title: '',
+          summary: '',
+        }
       }
     }
     return {

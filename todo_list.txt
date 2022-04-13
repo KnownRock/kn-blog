@@ -105,3 +105,18 @@
 
 + move all style to theme
 * solve monaco editor input loss, add a save button ?
+
+
++ add a config code block , can render code from input,and generate code can copy.
+
+** move login context to the top, and handle log in logic
+
+
+** solve router in relative path
+
+* add upload loading panel 
+
+*** mod useLoading to return a function to show the loading panel
+
+
+** file list viewer
