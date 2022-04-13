@@ -48,8 +48,6 @@
 
 + add a desktop to manager all apps
 
-* article banner upload img directly to dataurl
-
 * add cross bucket file and folder copy function
 
 + add a upload process bar
@@ -70,28 +68,19 @@
 ? cors download not work? only jump?
 
 
-* fix file selector
-*** resolve url directly
+
+
 
 
 ** add a markdown editor
 
 
-** export assets to a resource absolute path to avoid problems with relative path for blog
-
-
-*** .blog file to config blog assets default url
-
-** light kbn reader
+** light knbe reader
 
 
 ** fix html drop in
 
-* blog add a id prop to locate resource path?
-  or direct set a resource path?
-
-
-*** make a dialog to preview blog
+? make a dialog to preview blog
 
 + convert block to a markdown block?
 
@@ -118,5 +107,6 @@
 
 *** mod useLoading to return a function to show the loading panel
 
-
+? resolve url directly
 ** file list viewer
+*** fix file selector
