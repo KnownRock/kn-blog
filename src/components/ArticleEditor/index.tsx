@@ -74,6 +74,8 @@ function ArticleEditor({
   const [floatPosition, setFloatPosition] = useState({
     top: 0,
     left: 0,
+    width: 0,
+    height: 0,
   })
 
   // // https://github.com/facebook/draft-js/issues/121
@@ -406,8 +408,22 @@ function ArticleEditor({
           transition: 'all 0.2s ease-in-out',
           position: 'fixed',
           zIndex: floatVisible ? 10 : -1,
-          top: `${floatPosition.top - 40}px`,
-          left: `${floatPosition.left}px`,
+          top: {
+            xs: `${floatPosition.top + floatPosition.height}px`,
+            sx: `${floatPosition.top + floatPosition.height}px`,
+            md: `${floatPosition.top - 40}px`,
+            lg: `${floatPosition.top - 40}px`,
+            xl: `${floatPosition.top - 40}px`,
+
+          },
+          left: {
+            xs: `${floatPosition.left + 0}px`,
+            sm: `${floatPosition.left + 0}px`,
+            md: `${floatPosition.left + 0}px`,
+            lg: `${floatPosition.left + 0}px`,
+            xl: `${floatPosition.left + 0}px`,
+
+          },
           opacity: floatVisible ? 1 : 0,
           height: '40px',
         }}
