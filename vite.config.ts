@@ -26,7 +26,7 @@ export default defineConfig({
 
   build:{
     // https://vitejs.dev/config/#build-config
-    outDir: './main',
+    // outDir: './main',
   }
 
 
