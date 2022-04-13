@@ -119,3 +119,8 @@
 * add a img title
 
 * move blog part to a blog app, and load it in home page by .env file config
+
+
+* a s3 version key expired system, when login, upload a key to store random key in random url,
+  then encrypt the config with key.
+  or using a third party openid provider to login?
