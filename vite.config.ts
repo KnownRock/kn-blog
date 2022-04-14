@@ -21,6 +21,11 @@ export default defineConfig({
   resolve:{
     alias: {
       path: "path-browserify",
+      stream:"stream-browserify",
+      event:"event",
+      crypto:"crypto-browserify",
+      https:"https-browserify",
+      http:"http-browserify"
     },
   },
 

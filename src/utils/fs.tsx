@@ -1,10 +1,19 @@
-import Minio from 'minio'
+// import Minio from 'minio'
+
 // import path from 'path'
 // import mime from 'mime-types'
 import mime from 'mime'
+
+// import { Buffer } from 'Buffer'
 // move to global script to use minio sdk in vite
 // TODO: make it lazy load
-declare const minio: typeof Minio
+// declare const minio: typeof Minio
+// import minio from 'minio'
+import {
+  BucketItemStat, BucketItemWithMetadata, Client, ClientOptions, CopyConditions,
+} from 'minio'
+
+console.log(Client)
 // need to restart vite after change this
 const defaultConfig = {
   endPoint: import.meta.env.VITE_APP_S3_ENDPOINT, // '127.0.0.1',
@@ -17,11 +26,11 @@ const defaultConfig = {
 }
 
 let rootBucket = defaultConfig.bucket
-let rootMinioClient:Minio.Client | undefined
-let rootMinioConfig:Minio.ClientOptions | undefined
+let rootMinioClient:Client | undefined
+let rootMinioConfig:ClientOptions | undefined
 
 export async function setConfig(config:typeof defaultConfig) {
-  rootMinioClient = new minio.Client(config)
+  rootMinioClient = new Client(config)
   rootBucket = config.bucket
   rootMinioConfig = config
 }
@@ -31,11 +40,11 @@ type ResolvedPath = {
   path:string,
   fsPath:string,
   prefixPath:string,
-  minioClient :Minio.Client
+  minioClient :Client
 }
 
 export async function testConfig(config:typeof defaultConfig) {
-  const minioClient = new minio.Client(config)
+  const minioClient = new Client(config)
   try {
     return await minioClient.bucketExists(config.bucket)
   } catch (e) {
@@ -43,7 +52,7 @@ export async function testConfig(config:typeof defaultConfig) {
   }
 }
 
-async function getFileRaw(bucket:string, path:string, minioClient:Minio.Client) {
+async function getFileRaw(bucket:string, path:string, minioClient:Client) {
   const stream = await minioClient.getObject(bucket, path)
 
   return new Promise<Blob>((resolve, reject) => {
@@ -64,7 +73,7 @@ async function getFileRaw(bucket:string, path:string, minioClient:Minio.Client) 
 async function getFileAsTextRaw(
   bucket:string,
   path:string,
-  minioClient:Minio.Client,
+  minioClient:Client,
 ): Promise<string> {
   const object = await getFileRaw(bucket, path, minioClient)
   return new Promise((resolve, reject) => {
@@ -77,11 +86,11 @@ async function getFileAsTextRaw(
   })
 }
 
-export async function resolvePath(path: string, fsPath = '', prefixPath = '', bucket = rootBucket, parMinioClient: Minio.Client | undefined = undefined): Promise<ResolvedPath> {
+export async function resolvePath(path: string, fsPath = '', prefixPath = '', bucket = rootBucket, parMinioClient: Client | undefined = undefined): Promise<ResolvedPath> {
   let minioClient = parMinioClient
   if (minioClient === undefined) {
     if (rootMinioClient === undefined) {
-      rootMinioClient = new minio.Client(defaultConfig)
+      rootMinioClient = new Client(defaultConfig)
     }
     minioClient = rootMinioClient
   }
@@ -104,7 +113,7 @@ export async function resolvePath(path: string, fsPath = '', prefixPath = '', bu
     const linkObject = JSON.parse(linkFileText)
     const restPath = paths.slice(linkFileIndex + 1).join('/')
 
-    const newClient = new minio.Client({
+    const newClient = new Client({
       ...rootMinioConfig,
       ...linkObject,
     })
@@ -161,10 +170,15 @@ export async function uploadFile(fsPath:string, isDirectory = false) {
           const reader = new FileReader()
           reader.onload = async () => {
             const buffer = new Uint8Array(reader.result as ArrayBuffer)
-
+            debugger
             if (file) {
               // FIXME: change to use REAL Buffer, not Uint8Array. And restore minio.js
-              minioClient.putObject(bucket, `${path}${!isDirectory ? file.name : file.webkitRelativePath}`, buffer as Buffer, { 'Content-Type': file.type })
+              minioClient.putObject(
+                bucket,
+                `${path}${!isDirectory ? file.name : file.webkitRelativePath}`,
+                Buffer.from(buffer),
+                { 'Content-Type': file.type },
+              )
                 .then(() => {
                   resolve(true)
                 }).catch((e1) => {
@@ -205,7 +219,7 @@ export async function getMinioClient() {
   let minioClient
   if (minioClient === undefined) {
     if (rootMinioClient === undefined) {
-      rootMinioClient = new minio.Client(defaultConfig)
+      rootMinioClient = new Client(defaultConfig)
     }
     minioClient = rootMinioClient
   }
@@ -268,14 +282,14 @@ export async function saveDataUrlToDefaultBucket(
 }
 
 async function listObjects(
-  minioClient:Minio.Client,
+  minioClient:Client,
   bucket:string,
   path:string,
   recursive = false,
 ) {
   const stream = await minioClient.extensions.listObjectsV2WithMetadata(bucket, path, recursive)
-  const objs = await new Promise<Array<Minio.BucketItemWithMetadata>>((resolve, reject) => {
-    const objectsListTemp: Array<Minio.BucketItemWithMetadata> = []
+  const objs = await new Promise<Array<BucketItemWithMetadata>>((resolve, reject) => {
+    const objectsListTemp: Array<BucketItemWithMetadata> = []
     stream.on('data', (obj) => objectsListTemp.push(obj))
     stream.on('error', reject)
     stream.on('end', () => {
@@ -383,7 +397,7 @@ export async function getFileAsText(fsPath:string): Promise<string> {
   })
 }
 
-export async function stat(fsPath:string):Promise<Minio.BucketItemStat> {
+export async function stat(fsPath:string):Promise<BucketItemStat> {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
   return new Promise((resolve, reject) => {
     minioClient.statObject(bucket, path, (err, s) => {
@@ -407,7 +421,7 @@ export async function copyFile(fsPath:string, newFsPath:string) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
   // TODO: copy file between two different clients.
   const { bucket: newBucket, path: newPath } = await resolvePath(newFsPath)
-  const conds = new minio.CopyConditions()
+  const conds = new CopyConditions()
   return new Promise((resolve, reject) => {
     minioClient.copyObject(newBucket, newPath, `${bucket}/${path}`, conds, (err, etag) => {
       if (err) {
@@ -427,7 +441,7 @@ export async function copyFolder(fsPath:string, newFsPath:string) {
     // minioClient: newMinioClient,
   } = await resolvePath(newFsPath)
   const objects = await listObjects(minioClient, bucket, path, true)
-  const conds = new minio.CopyConditions()
+  const conds = new CopyConditions()
   // TODO: judge if two clients are the same config
   return Promise.all(objects.map((obj) => {
     const newObjName = obj.name.replace(new RegExp(`^${path}`), newPath)
