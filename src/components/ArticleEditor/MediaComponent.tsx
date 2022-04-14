@@ -59,9 +59,7 @@ function BlockTool({
       >
         {!readOnly && (
         <Box sx={{
-          // position: 'relative',
           width: '100%',
-          // height: 0,
           zIndex: 1,
           display: 'flex',
           justifyContent: 'center',
