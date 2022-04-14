@@ -1,10 +1,12 @@
-import {
-  Box, Button, Divider, IconButton, Input, Menu, MenuItem,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
+import Input from '@mui/material/Input'
+import MenuItem from '@mui/material/MenuItem'
 import { useNavigate } from 'react-router-dom'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Menu from '@mui/material/Menu'
 import FileIcon from './FileIcon'
 import {
   copyFile,

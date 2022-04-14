@@ -1,4 +1,5 @@
-import { Box, Container } from '@mui/material'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
 import { useEffect } from 'react'
 import ArticleCard from '../../components/ArticleCard'
 import TopBar from '../../components/TopBar'

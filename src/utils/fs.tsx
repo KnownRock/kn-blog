@@ -3,7 +3,7 @@ import mime from 'mime'
 
 // in order use minio in vite, bundle by browserify
 // please download from https://github.com/KnownRock/kn-blog-minio-lib
-import '../external/minio'
+import 'kn-blog-minio-sdk'
 
 declare const minio: typeof Minio
 
