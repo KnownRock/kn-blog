@@ -12,11 +12,21 @@ function Home() {
   const { loading, error, objects = [] } = useDir('/blogs/home')
   useLoading(loading)
 
+  // useEffect(() => {
+  //   if (!loadingForLogin && env.title) {
+  //     document.title = env.title
+  //   } else {
+  //     document.title = import.meta.env.VITE_APP_TITLE
+  //   }
+  // }, [env.title, loadingForLogin])
+
   useEffect(() => {
-    if (env.title) {
-      document.title = env.title
-    }
-  }, [env.title])
+    document.title = ((!loadingForLogin
+      ? env?.title
+      : undefined)
+      ?? import.meta.env.VITE_APP_TITLE)
+      || document.title
+  }, [loadingForLogin, env])
 
   return (
     <Box sx={{ }}>

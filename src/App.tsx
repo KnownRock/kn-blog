@@ -19,6 +19,7 @@ const TextViewer = React.lazy(() => import('./views/Viewers/TextViewer'))
 const ImageViewer = React.lazy(() => import('./views/Viewers/ImageViewer'))
 
 window.process = process
+document.title = import.meta.env.VITE_APP_TITLE
 
 function MySuspense({
   children,
