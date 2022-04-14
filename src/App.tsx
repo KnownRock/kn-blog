@@ -4,7 +4,7 @@ import {
 } from 'react-router-dom'
 
 import process from 'process'
-import { Box } from '@mui/material'
+import Box from '@mui/material/Box'
 import React from 'react'
 import Article from './views/Article'
 import Home from './views/Home'

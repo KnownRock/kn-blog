@@ -1,9 +1,13 @@
 import { useContext, useMemo } from 'react'
-import {
-  Box,
-  FormControl,
-  FormControlLabel, InputLabel, MenuItem, OutlinedInput, Radio, RadioGroup, Select, TextField,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import Select from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
 import pathUtils from 'path'
 import { getFileAsDataUrl } from '../utils/fs'

@@ -1,13 +1,18 @@
 import {
   useContext, useEffect, useRef, useState,
 } from 'react'
-import {
-  Box, Button, Card, CardActionArea, CardContent,
-  CardMedia, Container, Fab, IconButton, Input,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import CardActionArea from '@mui/material/CardActionArea'
+import CardContent from '@mui/material/CardContent'
+import CardMedia from '@mui/material/CardMedia'
+import Container from '@mui/material/Container'
+import Fab from '@mui/material/Fab'
+import IconButton from '@mui/material/IconButton'
+import Input from '@mui/material/Input'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
 import SaveIcon from '@mui/icons-material/Save'
 import { useTranslation } from 'react-i18next'
 import { RawDraftContentState } from 'draft-js'
@@ -24,7 +29,7 @@ import {
 import InfoContext from '../../../contexts/InfoContext'
 import ArticleEditor from '../../../components/ArticleEditor'
 import useLoading from '../../../contexts/LoadingContext'
-import { useSelectFile, useSelectImg } from '../../../hooks/use-selector'
+import { useSelectImg } from '../../../hooks/use-selector'
 import FolderSelector from '../../Files/FolderSelector'
 
 export const defaultImg = '/static/images/card.jpg'

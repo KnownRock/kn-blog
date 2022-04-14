@@ -1,5 +1,6 @@
-import { Box, Input } from '@mui/material'
-import { SetStateAction, useState } from 'react'
+import Box from '@mui/material/Box'
+import Input from '@mui/material/Input'
+import { useState } from 'react'
 import Files from './Files'
 
 export default function FolderSelector({ onSelect, nowPath, type }: {

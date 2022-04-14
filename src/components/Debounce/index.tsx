@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import Box from '@mui/material/Box'
 import { useEffect, useRef, useState } from 'react'
 
 // TODO: refact this to a component

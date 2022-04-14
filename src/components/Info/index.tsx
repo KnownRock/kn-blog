@@ -3,9 +3,13 @@ import {
   useCallback, useEffect, useMemo, useState,
 } from 'react'
 
-import {
-  Alert, Box, CircularProgress, Divider, Menu, MenuItem, Modal, Snackbar,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import Divider from '@mui/material/Divider'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import Modal from '@mui/material/Modal'
+import Snackbar from '@mui/material/Snackbar'
 import { v4 as uuidv4 } from 'uuid'
 import { useTranslation } from 'react-i18next'
 import InfoDialog from './InfoDialog'

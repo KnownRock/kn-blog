@@ -1,17 +1,15 @@
-import {
-  Box, Button, CircularProgress,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
 
 import Files from './Files'
 import { useAutoLogin, useLogout, useShowLogin } from '../../hooks/user-hooks'
 import FullContainer from './FullContainer'
 import Detail from './Detail'
-import Debounce from '../../components/Debounce'
 
 function Null():JSX.Element {
   return <Box />

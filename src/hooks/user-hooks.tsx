@@ -1,19 +1,19 @@
-import {
-  FormControl, FormGroup, TextField, Box,
-} from '@mui/material'
+import FormControl from '@mui/material/FormControl'
+import FormGroup from '@mui/material/FormGroup'
+import TextField from '@mui/material/TextField'
+import Box from '@mui/material/Box'
 import { useState, useEffect, useContext } from 'react'
 import { useTranslation } from 'react-i18next'
-import FingerprintJS from '@fingerprintjs/fingerprintjs'
-import CryptoJS from 'crypto-js'
+// import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useNavigate } from 'react-router-dom'
 import InfoContext from '../contexts/InfoContext'
 import { testConfig, setConfig, getFileAsText } from '../utils/fs'
 
-async function getVisitId() {
-  return FingerprintJS.load()
-    .then((fp) => fp.get())
-    .then((result) => (result.visitorId))
-}
+// async function getVisitId() {
+//   return FingerprintJS.load()
+//     .then((fp) => fp.get())
+//     .then((result) => (result.visitorId))
+// }
 
 function CustomFormControl({ children }:{ children: React.ReactNode }) {
   return (
