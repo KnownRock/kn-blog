@@ -130,3 +130,5 @@
   generate proxy by react static files. To make router work.
 
 + add a auto-size picture uploader
+
+*** solve dependencies problem
