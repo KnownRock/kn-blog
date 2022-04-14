@@ -5,8 +5,6 @@ import App from './App'
 import Theme from './themes/Main'
 import './i18n/index'
 
-document.title = import.meta.env.VITE_APP_TITLE
-
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
