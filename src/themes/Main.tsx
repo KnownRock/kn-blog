@@ -1,6 +1,4 @@
-import {
-  createTheme, ThemeProvider,
-} from '@mui/material'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
 
 import './index.css'
 

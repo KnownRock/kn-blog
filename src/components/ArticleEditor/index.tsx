@@ -11,9 +11,11 @@ import {
   DraftEditorCommand, DraftHandleValue,
   Editor, EditorState, RawDraftContentState, RichUtils,
 } from 'draft-js'
-import {
-  Box, Card, IconButton, Menu, MenuItem, Typography,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
+
 import { useDropzone } from 'react-dropzone'
 import FormatBold from '@mui/icons-material/FormatBold'
 import FormatItalic from '@mui/icons-material/FormatItalic'

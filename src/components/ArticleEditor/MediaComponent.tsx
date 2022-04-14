@@ -5,9 +5,11 @@ import {
   ContentBlock,
   ContentState, EditorState,
 } from 'draft-js'
-import {
-  Box, Button, IconButton, Input, Tooltip, Typography,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import MonacoEditorCom from '@monaco-editor/react'
@@ -17,7 +19,7 @@ import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 // import { docco, dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 // import dracula from 'react-syntax-highlighter/dist/esm/styles/prism/dracula'
-import { atomDark, dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import dracula from 'react-syntax-highlighter/dist/cjs/styles/prism/dracula'
 import SaveIcon from '@mui/icons-material/Save'
 import { useSettingCodeLanguage, useSettingFileTypeAndName } from '../../hooks/use-selector'
 import EditorContext from '../../contexts/EditorContext'

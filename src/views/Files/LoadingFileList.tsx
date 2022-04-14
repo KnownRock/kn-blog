@@ -1,7 +1,8 @@
-import {
-  Box, Button, CircularProgress, Grid, LinearProgress, Skeleton, Typography,
-} from '@mui/material'
-import { useContext, useEffect, useState } from 'react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import LinearProgress from '@mui/material/LinearProgress'
+import Typography from '@mui/material/Typography'
+import { useContext } from 'react'
 import { useTranslation } from 'react-i18next'
 import Debounce from '../../components/Debounce'
 import FilesContextRe from '../../contexts/FilesContext'
