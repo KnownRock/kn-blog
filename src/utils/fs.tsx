@@ -13,6 +13,8 @@ import {
   BucketItemStat, BucketItemWithMetadata, Client, ClientOptions, CopyConditions,
 } from 'minio'
 
+import axios from 'axios'
+
 console.log(Client)
 // need to restart vite after change this
 const defaultConfig = {
@@ -30,7 +32,10 @@ let rootMinioClient:Client | undefined
 let rootMinioConfig:ClientOptions | undefined
 
 export async function setConfig(config:typeof defaultConfig) {
-  rootMinioClient = new Client(config)
+  rootMinioClient = new Client({
+    ...config,
+    transport: axios,
+  })
   rootBucket = config.bucket
   rootMinioConfig = config
 }
@@ -44,7 +49,10 @@ type ResolvedPath = {
 }
 
 export async function testConfig(config:typeof defaultConfig) {
-  const minioClient = new Client(config)
+  const minioClient = new Client({
+    ...config,
+    transport: axios,
+  })
   try {
     return await minioClient.bucketExists(config.bucket)
   } catch (e) {
@@ -90,7 +98,11 @@ export async function resolvePath(path: string, fsPath = '', prefixPath = '', bu
   let minioClient = parMinioClient
   if (minioClient === undefined) {
     if (rootMinioClient === undefined) {
-      rootMinioClient = new Client(defaultConfig)
+      rootMinioClient = new Client({
+        ...defaultConfig,
+        transport: axios,
+
+      })
     }
     minioClient = rootMinioClient
   }
@@ -219,7 +231,10 @@ export async function getMinioClient() {
   let minioClient
   if (minioClient === undefined) {
     if (rootMinioClient === undefined) {
-      rootMinioClient = new Client(defaultConfig)
+      rootMinioClient = new Client({
+        ...defaultConfig,
+        transport: axios,
+      })
     }
     minioClient = rootMinioClient
   }
