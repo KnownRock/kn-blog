@@ -22,6 +22,11 @@ export default defineConfig({
     alias: {
       path: "path-browserify",
     },
+  },
+
+  build:{
+    // https://vitejs.dev/config/#build-config
+    // outDir: './main',
   }
 
 

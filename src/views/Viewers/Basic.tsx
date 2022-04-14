@@ -69,7 +69,13 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{
         </IconButton>
       </TopBar>
 
-      {!loading && <FileViewer setTitle={setTitle} readOnly={!!env.readOnly} path={path} />}
+      {!loading && (
+      <FileViewer
+        setTitle={setTitle}
+        readOnly={!!env.readOnly || !success}
+        path={path}
+      />
+      )}
 
     </Box>
   )

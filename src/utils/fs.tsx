@@ -1,11 +1,12 @@
 import Minio from 'minio'
-// import path from 'path'
-// import mime from 'mime-types'
 import mime from 'mime'
-// move to global script to use minio sdk in vite
-// TODO: make it lazy load
+
+// in order use minio in vite, bundle by browserify
+// please download from https://github.com/KnownRock/kn-blog-minio-lib
+import '../external/minio'
+
 declare const minio: typeof Minio
-// need to restart vite after change this
+
 const defaultConfig = {
   endPoint: import.meta.env.VITE_APP_S3_ENDPOINT, // '127.0.0.1',
   port: +import.meta.env.VITE_APP_S3_PORT, // 9000,
@@ -39,7 +40,9 @@ export async function testConfig(config:typeof defaultConfig) {
   try {
     return await minioClient.bucketExists(config.bucket)
   } catch (e) {
-    return false
+    return new Promise((resolve) => {
+      resolve(false)
+    })
   }
 }
 
@@ -52,7 +55,6 @@ async function getFileRaw(bucket:string, path:string, minioClient:Minio.Client) 
       reject(e)
     })
     stream.on('data', (chunk) => {
-      // console.log(chunk)
       chunks.push(chunk)
     })
     stream.on('end', () => {
@@ -236,6 +238,9 @@ export async function saveDataUrl(
   dataUrl:string,
 ) {
   const { bucket, path, minioClient } = await resolvePath(fsPath)
+
+  if (!dataUrl) return minioClient.putObject(bucket, path, '', { 'Content-Type': 'text/plain' })
+
   const byteString = atob(dataUrl.split(',')[1])
   const fileType = dataUrl.match(/^data:([^;]+)/)?.[1]
   const ab = new ArrayBuffer(byteString.length)
