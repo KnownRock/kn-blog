@@ -132,3 +132,5 @@
 + add a auto-size picture uploader
 
 *** solve dependencies problem
+
+* add a copy function which can copy image to the clipboard

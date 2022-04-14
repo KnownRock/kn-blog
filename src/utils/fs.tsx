@@ -134,7 +134,7 @@ export async function uploadDropedFileList(fsPath:string, fileList:({ path:strin
 
         if (file) {
           // FIXME: change to use REAL Buffer, not Uint8Array. And restore minio.js
-          minioClient.putObject(bucket, `${path}${file.path}`, buffer as Buffer, { 'Content-Type': file.type })
+          minioClient.putObject(bucket, `${path}${file.path}`, Buffer.from(buffer), { 'Content-Type': file.type })
             .then(() => {
               resolve(true)
             }).catch((e1) => {
@@ -166,7 +166,12 @@ export async function uploadFile(fsPath:string, isDirectory = false) {
 
             if (file) {
               // FIXME: change to use REAL Buffer, not Uint8Array. And restore minio.js
-              minioClient.putObject(bucket, `${path}${!isDirectory ? file.name : file.webkitRelativePath}`, buffer as Buffer, { 'Content-Type': file.type })
+              minioClient.putObject(
+                bucket,
+                `${path}${!isDirectory ? file.name : file.webkitRelativePath}`,
+                Buffer.from(buffer),
+                { 'Content-Type': file.type },
+              )
                 .then(() => {
                   resolve(true)
                 }).catch((e1) => {
@@ -248,7 +253,7 @@ export async function saveDataUrl(
   for (let i = 0; i < byteString.length; i += 1) {
     buffer[i] = byteString.charCodeAt(i)
   }
-  return minioClient.putObject(bucket, path, buffer as Buffer, { 'Content-Type': fileType })
+  return minioClient.putObject(bucket, path, Buffer.from(buffer), { 'Content-Type': fileType })
 }
 
 export async function saveDataUrlToDefaultBucket(
@@ -266,7 +271,7 @@ export async function saveDataUrlToDefaultBucket(
     buffer[i] = byteString.charCodeAt(i)
   }
 
-  return minioClient.putObject(bucket, fsPath, buffer as Buffer, { 'Content-Type': fileType })
+  return minioClient.putObject(bucket, fsPath, Buffer.from(buffer), { 'Content-Type': fileType })
 }
 
 async function listObjects(
