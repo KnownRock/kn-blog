@@ -128,3 +128,5 @@
 
 + using OpenResty proxy react application which is hold by a s3 bucket.
   generate proxy by react static files. To make router work.
+
++ add a auto-size picture uploader
