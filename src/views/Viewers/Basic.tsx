@@ -1,6 +1,6 @@
-import {
-  Box, Button, Fab, IconButton, Input, TextField,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import TextField from '@mui/material/TextField'
 import { useContext, useEffect, useState } from 'react'
 import InfoIcon from '@mui/icons-material/Info'
 import { t } from 'i18next'
@@ -69,7 +69,13 @@ function Viewer({ FileViewer }: { FileViewer: React.FC<{
         </IconButton>
       </TopBar>
 
-      {!loading && <FileViewer setTitle={setTitle} readOnly={!!env.readOnly} path={path} />}
+      {!loading && (
+      <FileViewer
+        setTitle={setTitle}
+        readOnly={!!env.readOnly || !success}
+        path={path}
+      />
+      )}
 
     </Box>
   )

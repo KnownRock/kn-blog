@@ -1,4 +1,5 @@
-import { Box, IconButton } from '@mui/material'
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useContext } from 'react'
@@ -106,7 +107,7 @@ export default function Detail({ object }: { object: FileInfo; }) {
     const link = document.createElement('a')
 
     link.href = dataUrl
-    link.download = object.name
+    link.download = pathUtils.basename(object.name)
     link.click()
   }
 

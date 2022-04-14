@@ -1,17 +1,26 @@
-import { Box, Container } from '@mui/material'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import { useEffect } from 'react'
 import ArticleCard from '../../components/ArticleCard'
 import TopBar from '../../components/TopBar'
 import useLoading from '../../contexts/LoadingContext'
 import { useDir } from '../../hooks/fs-hooks'
+import { useAutoLogin } from '../../hooks/user-hooks'
 
 function Home() {
+  const { loading: loadingForLogin, env } = useAutoLogin()
   const { loading, error, objects = [] } = useDir('/blogs/home')
-  console.log(objects)
   useLoading(loading)
+
+  useEffect(() => {
+    if (env.title) {
+      document.title = env.title
+    }
+  }, [env.title])
 
   return (
     <Box sx={{ }}>
-      <TopBar />
+      <TopBar title={!loadingForLogin ? env?.title : undefined} />
       <Container
         maxWidth="md"
         sx={{

@@ -1,5 +1,6 @@
 import {
-  Component, useCallback, useEffect, useMemo, useRef, useState,
+  useCallback,
+  useEffect, useMemo, useRef, useState,
 } from 'react'
 import {
   AtomicBlockUtils,
@@ -7,12 +8,15 @@ import {
   ContentState,
   convertFromRaw,
   convertToRaw,
-  DraftEditorCommand, Editor, EditorState, Modifier, RawDraftContentState, RichUtils,
+  DraftEditorCommand, DraftHandleValue,
+  Editor, EditorState, RawDraftContentState, RichUtils,
 } from 'draft-js'
-import {
-  Box, Button, Card, IconButton,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
 
+import { useDropzone } from 'react-dropzone'
 import FormatBold from '@mui/icons-material/FormatBold'
 import FormatItalic from '@mui/icons-material/FormatItalic'
 import FormatUnderlined from '@mui/icons-material/FormatUnderlined'
@@ -23,86 +27,26 @@ import Image from '@mui/icons-material/Image'
 import './index.css'
 import { useTranslation } from 'react-i18next'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
-import { useSelectImg } from '../../hooks/useSelectImg'
-// eslint-disable-next-line react/prefer-stateless-function
-// class MediaComponent extends Component {
-//   render() {
-//     const { block, contentState } = this.props
-//     const { foo } = this.props.blockProps
-//     const data = contentState.getEntity(block.getEntityAt(0)).getData()
+import mime from 'mime'
+import TextSnippetIcon from '@mui/icons-material/TextSnippet'
+import ShortTextIcon from '@mui/icons-material/ShortText'
+import { useSelectFile } from '../../hooks/use-selector'
+import { convertBlobsToDataUrlWithFileName, convertFilesToDataUrlWithFileName } from '../../utils/file-tools'
+import MediaComponent from './MediaComponent'
+import EditorContext from '../../contexts/EditorContext'
 
-//     return (
-//       <div className="media-wrapper">
-//         <img src={data.src} />
-//       </div>
-//     )
-//   }
-// }
-
-function MediaComponent(props:{
-  block: ContentBlock,
-  contentState: ContentState,
-  blockProps: any,
+function HeaderIcon({
+  str,
+}:{
+  str:string
 }) {
-  const {
-    block, contentState, blockProps,
-  } = props
-  // const { foo } = blockProps
-  const data = contentState.getEntity(block.getEntityAt(0)).getData()
-  const mediaType = data.type
-
-  const handleFileClick = useCallback(() => {
-    const a = document.createElement('a')
-    a.href = data.src
-    a.download = data.src
-    a.target = '_blank'
-    a.click()
-  }, [data])
-
-  const mediaNode = useMemo(() => {
-    if (mediaType === 'image') {
-      return (
-        <>
-          <img
-            style={{
-              maxHeight: data.maxHeight,
-              maxWidth: data.maxWidth,
-            }}
-            src={data.src}
-            alt={data.alt}
-            height={data.height}
-            width={data.width}
-          />
-          <span>{data.alt}</span>
-        </>
-      )
-    }
-    if (mediaType === 'file') {
-      return (
-        <Button variant="outlined" onClick={handleFileClick} startIcon={<AttachFileIcon />}>
-          {data.fileName}
-        </Button>
-      )
-    }
-
-    return (
-      <Box>not found</Box>
-    )
-  }, [mediaType, data, handleFileClick])
-
-  // debugger
   return (
-    <Box style={{
-      width: '100%',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'column',
-
-    }}
+    <Typography
+      variant="h6"
+      className="knBlogHeader"
     >
-      {mediaNode}
-    </Box>
+      {str}
+    </Typography>
   )
 }
 function myBlockRenderer(contentBlock: ContentBlock) {
@@ -122,14 +66,16 @@ function myBlockRenderer(contentBlock: ContentBlock) {
 function ArticleEditor({
   contentState,
   onContentStateChange = () => {},
-  readonly = false,
+  readOnly = false,
 }:{
   contentState?: RawDraftContentState | undefined;
   onContentStateChange?: (contentState: RawDraftContentState) => void;
-  readonly?: boolean;
+  readOnly?: boolean;
 }) {
-  const { getImgAsDataUrl } = useSelectImg()
+  const { getFileAsDataUrlWithFileName } = useSelectFile()
   const { t } = useTranslation()
+  const [tempReadOnly, setTempReadOnly] = useState(false)
+  const editor = useRef<Editor>(null)
   const [state, setState] = useState({
     editorState:
     EditorState.createEmpty(),
@@ -146,25 +92,42 @@ function ArticleEditor({
   const [floatPosition, setFloatPosition] = useState({
     top: 0,
     left: 0,
+    width: 0,
+    height: 0,
   })
 
-  // https://github.com/facebook/draft-js/issues/121
-  function onTab(e : any) {
-    e.preventDefault()
+  // // https://github.com/facebook/draft-js/issues/121
+  // function onTab(e : any) {
+  //   e.preventDefault()
 
-    const currentState = state.editorState
-    const newContentState = Modifier.replaceText(
-      currentState.getCurrentContent(),
-      currentState.getSelection(),
-      '  ',
-    )
+  //   const currentState = state.editorState
+  //   const newContentState = Modifier.replaceText(
+  //     currentState.getCurrentContent(),
+  //     currentState.getSelection(),
+  //     '  ',
+  //   )
 
-    setState({
-      editorState: EditorState.push(currentState, newContentState, 'insert-characters'),
-    })
-  }
+  //   setState({
+  //     editorState: EditorState.push(currentState, newContentState, 'insert-characters'),
+  //   })
+  // }
 
   const [floatVisible, setFloatVisible] = useState(false)
+
+  const onWheel = useCallback(
+    () => {
+      // if (e.deltaY > 0) {
+      setFloatVisible(false)
+      // }
+    },
+    [],
+  )
+  useEffect(() => {
+    window.addEventListener('wheel', onWheel)
+    return () => {
+      window.removeEventListener('wheel', onWheel)
+    }
+  }, [onWheel])
 
   useEffect(() => {
     let newState = EditorState.createEmpty()
@@ -238,6 +201,126 @@ function ArticleEditor({
     return 'not-handled'
   }
 
+  const addCodeBlock = (
+    { blockType, code, language = 'text' }: { blockType: 'code' | 'md-block'; code: string; language?: string },
+  ) => {
+    if (blockType === 'code' || blockType === 'md-block') {
+      const entityKey = state.editorState // from STATE
+        .getCurrentContent()
+        .createEntity('atomic', 'MUTABLE', {
+          type: blockType,
+          code,
+          language,
+        }).getLastCreatedEntityKey()
+
+      // NEW EDITOR STATE
+      setState((oldState) => ({
+        editorState: AtomicBlockUtils.insertAtomicBlock(
+          oldState.editorState,
+          entityKey,
+          ' ',
+        ),
+      }))
+    }
+  }
+
+  const addCustomizedBlock = (
+    { blockType, dataUrl, fileName }:DataUrlWithFileName & { blockType:'image' | 'file' },
+  ) => {
+    if (blockType === 'image') {
+      const entityKey = state.editorState // from STATE
+        .getCurrentContent()
+        .createEntity('atomic', 'MUTABLE', {
+          src: dataUrl,
+          maxHeight: '80%',
+          maxWidth: '80%',
+          type: 'image',
+          alt: fileName,
+          fileName,
+        }).getLastCreatedEntityKey()
+
+      // NEW EDITOR STATE
+      setState((oldState) => ({
+        editorState: AtomicBlockUtils.insertAtomicBlock(
+          oldState.editorState,
+          entityKey,
+          ' ',
+        ),
+      }))
+
+      // onChange(newEditorState)
+    }
+    if (blockType === 'file') {
+      const entityKey = state.editorState
+        .getCurrentContent()
+        .createEntity('atomic', 'MUTABLE', {
+          src: dataUrl,
+          maxHeight: '600px',
+          maxWidth: '600px',
+          type: 'file',
+          fileName,
+        }).getLastCreatedEntityKey()
+
+      setState((oldState) => ({
+        editorState: AtomicBlockUtils.insertAtomicBlock(
+          oldState.editorState,
+          entityKey,
+          ' ',
+        ),
+      }))
+    }
+  }
+
+  const handlePastedFiles = (blobs:Array<Blob>) => {
+    convertBlobsToDataUrlWithFileName(blobs)
+      .then((files) => files.forEach(
+        ({ dataUrl, fileName }) => {
+          const contentType = mime.getType(fileName)
+          const blockType = contentType?.startsWith('image/') ? 'image' : 'file'
+          addCustomizedBlock({
+            blockType,
+            dataUrl,
+            fileName,
+          })
+        },
+      ))
+
+    return 'handled' as DraftHandleValue
+  }
+  const onDrop = (acceptedFiles:File[]) => {
+    if (readOnly) return
+
+    convertFilesToDataUrlWithFileName(acceptedFiles)
+      .then((files) => files.forEach(
+        ({ dataUrl, fileName }) => {
+          const contentType = mime.getType(fileName)
+          const blockType = contentType?.startsWith('image/') ? 'image' : 'file'
+          addCustomizedBlock({
+            blockType,
+            dataUrl,
+            fileName,
+          })
+        },
+      ))
+  }
+
+  // const onDrop = async (acceptedFiles:File[]) => {
+  //   convertFilesToDataUrlWithFileName(acceptedFiles)
+  //     .then((files) => {
+  //       for (let i = 0; i < files.length; i += 1) {
+  //         const file = files[i]
+  //         const { dataUrl, fileName } = file
+  //         const contentType = mime.getType(fileName)
+  //         const blockType = contentType?.startsWith('image/') ? 'image' : 'file'
+  //         addCustomizedBlock({
+  //           blockType,
+  //           dataUrl,
+  //           fileName,
+  //         })
+  //       }
+  //     })
+  // }
+
   const onBoldClick = () => {
     onChange(RichUtils.toggleInlineStyle(state.editorState, 'BOLD'))
     // onChange(RichUtils.toggleBlockType(state.editorState, 'header-one'))
@@ -249,8 +332,46 @@ function ArticleEditor({
     onChange(RichUtils.toggleInlineStyle(state.editorState, 'UNDERLINE'))
   }
 
+  const onHeaderOneClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-one'))
+  }
+  const onHeaderTwoClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-two'))
+  }
+  const onHeaderThreeClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-three'))
+  }
+  const onHeaderFourClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-four'))
+  }
+  const onHeaderFiveClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-five'))
+  }
+  const onHeaderSixClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'header-six'))
+  }
+
+  const onBlockquoteClick = () => {
+    onChange(RichUtils.toggleBlockType(state.editorState, 'blockquote'))
+  }
+
   const onCodeClick = () => {
-    onChange(RichUtils.toggleBlockType(state.editorState, 'code-block'))
+    // onChange(RichUtils.toggleBlockType(state.editorState, 'code-block'))
+    // getFileAsDataUrlWithFileName().then(({ dataUrl, fileName }) => {
+    // if (!dataUrl) return
+    // TODO: use api to get text
+    const selectionText = document?.getSelection?.()?.toString() ?? 'image'
+    addCodeBlock({ blockType: 'code', code: selectionText })
+    // })
+  }
+
+  const onMdBlockClick = () => {
+    const selectionText = document?.getSelection?.()?.toString() ?? 'image'
+    addCodeBlock({
+      blockType: 'md-block',
+      code: selectionText,
+      language: 'markdown',
+    })
   }
 
   const onBlur = () => {
@@ -258,54 +379,18 @@ function ArticleEditor({
   }
 
   const onImgClick = async () => {
-    const selectionText = document?.getSelection?.()?.toString() ?? 'image'
+    // const selectionText = document?.getSelection?.()?.toString() ?? 'image'
 
-    getImgAsDataUrl().then((dataUrl) => {
+    getFileAsDataUrlWithFileName().then(({ dataUrl, fileName }) => {
       if (!dataUrl) return
-
-      const entityKey = state.editorState // from STATE
-        .getCurrentContent()
-        .createEntity('atomic', 'MUTABLE', {
-          src: dataUrl,
-          maxHeight: '600px',
-          maxWidth: '600px',
-          type: 'image',
-          alt: selectionText,
-        }).getLastCreatedEntityKey()
-
-      // NEW EDITOR STATE
-      const newEditorState = AtomicBlockUtils.insertAtomicBlock(
-        state.editorState,
-        entityKey,
-        ' ',
-      )
-      onChange(newEditorState)
+      addCustomizedBlock({ blockType: 'image', dataUrl, fileName })
     })
   }
 
   const onFileClick = async () => {
-    const selectionText = document?.getSelection?.()?.toString() ?? 'file'
-
-    getImgAsDataUrl().then((dataUrl) => {
+    getFileAsDataUrlWithFileName().then(({ dataUrl, fileName }) => {
       if (!dataUrl) return
-
-      const entityKey = state.editorState // from STATE
-        .getCurrentContent()
-        .createEntity('atomic', 'MUTABLE', {
-          src: dataUrl,
-          maxHeight: '600px',
-          maxWidth: '600px',
-          type: 'file',
-          fileName: selectionText,
-        }).getLastCreatedEntityKey()
-
-      // NEW EDITOR STATE
-      const newEditorState = AtomicBlockUtils.insertAtomicBlock(
-        state.editorState,
-        entityKey,
-        ' ',
-      )
-      onChange(newEditorState)
+      addCustomizedBlock({ blockType: 'file', dataUrl, fileName })
     })
   }
 
@@ -320,72 +405,183 @@ function ArticleEditor({
     if (type === 'code-block') {
       return 'knBlogCodeBlock'
     }
-
     return type
   }
 
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    noClick: true,
+  })
+
+  const editorContext = useMemo(() => ({
+    state,
+    setState,
+    readOnly,
+    setTempReadOnly,
+    editor,
+  }), [state, readOnly, editor])
+
+  const dropProps = useMemo(() => getRootProps(), [getRootProps])
+
+  const menuItems = [[{
+    id: 'h1',
+    icon: <HeaderIcon str="H1" />,
+    onClick: onHeaderOneClick,
+  }, {
+    id: 'h2',
+    icon: <HeaderIcon str="H2" />,
+    onClick: onHeaderTwoClick,
+  }, {
+    id: 'h3',
+    icon: <HeaderIcon str="H3" />,
+    onClick: onHeaderThreeClick,
+  }, {
+    id: 'h4',
+    icon: <HeaderIcon str="H4" />,
+    onClick: onHeaderFourClick,
+  }, {
+    id: 'h5',
+    icon: <HeaderIcon str="H5" />,
+    onClick: onHeaderFiveClick,
+  }, {
+    id: 'h6',
+    icon: <HeaderIcon str="H6" />,
+    onClick: onHeaderSixClick,
+  },
+  {
+    id: 'blockquote',
+    icon: <ShortTextIcon />,
+    onClick: onBlockquoteClick,
+  }], [{
+    id: 'bold',
+    icon: <FormatBold />,
+    onClick: onBoldClick,
+  }, {
+    id: 'italic',
+    icon: <FormatItalic />,
+    onClick: onItalicClick,
+  }, {
+    id: 'underline',
+    icon: <FormatUnderlined />,
+    onClick: onUnderlineClick,
+  }, {
+    id: 'code',
+    icon: <Code />,
+    onClick: onCodeClick,
+  }, {
+    id: 'md-block',
+    icon: <TextSnippetIcon />,
+    onClick: onMdBlockClick,
+  }, {
+    id: 'img',
+    icon: <Image />,
+    onClick: onImgClick,
+  },
+  {
+    id: 'file',
+    icon: <AttachFileIcon />,
+    onClick: onFileClick,
+  }]]
+
   return (
-    <Box sx={{
-    }}
+    <Box
+      sx={{
+      }}
+
     >
+
       <Card
         sx={{
-
           transition: 'all 0.2s ease-in-out',
           position: 'fixed',
           zIndex: floatVisible ? 10 : -1,
-          top: `${floatPosition.top - 40}px`,
-          left: `${floatPosition.left}px`,
+          top: {
+            xs: `${floatPosition.top + floatPosition.height}px`,
+            sx: `${floatPosition.top + floatPosition.height}px`,
+            md: `${floatPosition.top - 80}px`,
+            lg: `${floatPosition.top - 80}px`,
+            xl: `${floatPosition.top - 80}px`,
 
+          },
+          left: {
+            xs: `${floatPosition.left + 0}px`,
+            sm: `${floatPosition.left + 0}px`,
+            md: `${floatPosition.left + 0}px`,
+            lg: `${floatPosition.left + 0}px`,
+            xl: `${floatPosition.left + 0}px`,
+
+          },
           opacity: floatVisible ? 1 : 0,
-
-          // width: '100px',
-          height: '40px',
-          // backgroundColor: 'rgba(255,255,255,1)',
+          height: '80px',
         }}
 
       >
-        {/* https://github.com/facebook/draft-js/issues/275 */}
-        <IconButton onClick={onBoldClick} onMouseDown={(e) => e.preventDefault()}>
-          <FormatBold />
-        </IconButton>
-        <IconButton onClick={onItalicClick} onMouseDown={(e) => e.preventDefault()}>
-          <FormatItalic />
-        </IconButton>
-        <IconButton onClick={onUnderlineClick} onMouseDown={(e) => e.preventDefault()}>
-          <FormatUnderlined />
-        </IconButton>
-        <IconButton onClick={onCodeClick} onMouseDown={(e) => e.preventDefault()}>
-          <Code />
-        </IconButton>
+        <Box>
+          {/* https://github.com/facebook/draft-js/issues/275 */}
+          {menuItems[0].map(({ id, icon, onClick }) => (
+            <IconButton
+              sx={{
+                width: '40px',
+                height: '40px',
+              }}
+              key={id}
+              onClick={onClick}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {icon}
+            </IconButton>
+          ))}
+        </Box>
+        <Box>
+          {/* https://github.com/facebook/draft-js/issues/275 */}
+          {menuItems[1].map(({ id, icon, onClick }) => (
+            <IconButton
+              sx={{
+                width: '40px',
+                height: '40px',
+              }}
+              key={id}
+              onClick={onClick}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {icon}
+            </IconButton>
+          ))}
+        </Box>
 
-        <IconButton onClick={onImgClick} onMouseDown={(e) => e.preventDefault()}>
-          <Image />
-        </IconButton>
-        <IconButton onClick={onFileClick} onMouseDown={(e) => e.preventDefault()}>
-          <AttachFileIcon />
-        </IconButton>
       </Card>
       <Box
         ref={editorContainer}
         sx={{
           paddingTop: 1,
-          ...readonly ? {} : { backgroundColor: 'rgba(255,255,0,0.1)' },
-        }}
 
+          ...readOnly ? {} : { backgroundColor: 'rgba(255,255,0,0.1)' },
+        }}
+        onDrop={dropProps.onDrop}
       >
 
-        <Editor
-          blockRendererFn={myBlockRenderer}
-          readOnly={readonly}
-          onBlur={onBlur}
-          placeholder={t('Write something...')}
-          editorState={state.editorState}
-          handleKeyCommand={handleKeyCommand}
-          onChange={onChange}
-          blockStyleFn={myBlockStyleFn}
-          // onTab={onTab}
-        />
+        { !readOnly
+          && (
+          <input
+          // eslint-disable-next-line react/jsx-props-no-spreading
+            {...getInputProps()}
+          />
+          )}
+        <EditorContext.Provider value={editorContext}>
+          <Editor
+            ref={editor}
+            blockRendererFn={myBlockRenderer}
+            readOnly={readOnly || tempReadOnly}
+            onBlur={onBlur}
+            placeholder={t('Write something...')}
+            editorState={state.editorState}
+            handleKeyCommand={handleKeyCommand}
+            handlePastedFiles={handlePastedFiles}
+          // handleDroppedFiles={handleDroppedFiles}
+            onChange={onChange}
+            blockStyleFn={myBlockStyleFn}
+          />
+        </EditorContext.Provider>
       </Box>
     </Box>
   )

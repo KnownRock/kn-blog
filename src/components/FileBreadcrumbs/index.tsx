@@ -3,7 +3,7 @@ import * as React from 'react'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
+import Button from '@mui/material/Button'
 import { useTranslation } from 'react-i18next'
 import FilesContextRe from '../../contexts/FilesContext'
 

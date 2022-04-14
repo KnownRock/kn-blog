@@ -1,6 +1,5 @@
-import { Box } from '@mui/material'
+import Box from '@mui/material/Box'
 import { useCallback, useContext, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import FileBreadcrumbs from '../../components/FileBreadcrumbs'
 import { useDir } from '../../hooks/fs-hooks'

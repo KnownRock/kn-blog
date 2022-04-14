@@ -1,13 +1,10 @@
-import {
-  Accordion, AccordionDetails, AccordionSummary, Box, Typography,
-} from '@mui/material'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import { useCallback, useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DropzoneRootProps, useDropzone } from 'react-dropzone'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import FileButton from './FileButton'
-import { dir, uploadDropedFileList } from '../../utils/fs'
+import { dir } from '../../utils/fs'
 import FilesContextRe from '../../contexts/FilesContext'
 
 export default function FileList({ objects }: { objects: Awaited<ReturnType<typeof dir>>; }) {

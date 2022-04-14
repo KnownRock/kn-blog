@@ -1,8 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
 import Editor from '@monaco-editor/react'
-import {
-  Box, CircularProgress, Fab, Modal,
-} from '@mui/material'
+import Fab from '@mui/material/Fab'
 import SaveIcon from '@mui/icons-material/Save'
 import { useTranslation } from 'react-i18next'
 import { useFileText, useGetFile } from '../../../hooks/fs-hooks'

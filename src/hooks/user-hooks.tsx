@@ -1,19 +1,19 @@
-import {
-  FormControl, FormGroup, TextField, Box,
-} from '@mui/material'
+import FormControl from '@mui/material/FormControl'
+import FormGroup from '@mui/material/FormGroup'
+import TextField from '@mui/material/TextField'
+import Box from '@mui/material/Box'
 import { useState, useEffect, useContext } from 'react'
 import { useTranslation } from 'react-i18next'
-import FingerprintJS from '@fingerprintjs/fingerprintjs'
-import CryptoJS from 'crypto-js'
+// import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useNavigate } from 'react-router-dom'
 import InfoContext from '../contexts/InfoContext'
 import { testConfig, setConfig, getFileAsText } from '../utils/fs'
 
-async function getVisitId() {
-  return FingerprintJS.load()
-    .then((fp) => fp.get())
-    .then((result) => (result.visitorId))
-}
+// async function getVisitId() {
+//   return FingerprintJS.load()
+//     .then((fp) => fp.get())
+//     .then((result) => (result.visitorId))
+// }
 
 function CustomFormControl({ children }:{ children: React.ReactNode }) {
   return (
@@ -42,8 +42,6 @@ function Form<T extends object>({
 
   ,
 }) {
-  const { t } = useTranslation()
-
   const [form, setForm] = useState(formValue)
 
   const initialErrorDict:{
@@ -113,11 +111,12 @@ export function useShowLogin() {
     (async () => {
       if (show) {
         let form = {
-          url: 'http://192.168.199.252:9000',
+          // url: 'http://192.168.199.252:9000',
+          url: `${import.meta.env.VITE_APP_S3_USE_SSL === 'true' ? 'https' : 'http'}://${import.meta.env.VITE_APP_S3_ENDPOINT}:${import.meta.env.VITE_APP_S3_PORT}`,
           // url: 'http://127.0.0.1:9000',
-          backet: 'root',
-          accessKey: 'minioadmin',
-          secretKey: 'minioadmin',
+          backet: `${import.meta.env.VITE_APP_S3_BUCKET}`,
+          accessKey: '', // `${import.meta.env.VITE_APP_S3_ACCESS_KEY}`,
+          secretKey: '', // `${import.meta.env.VITE_APP_S3_SECRET_KEY}`,
         }
         let ok = false
 
@@ -155,7 +154,7 @@ export function useShowLogin() {
 
         await info({
           title: t('Login'),
-          noClose: true,
+          noBlur: true,
           async isOk() {
             if (!ok) {
               info({

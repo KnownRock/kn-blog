@@ -5,14 +5,12 @@ import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import {
-  SxProps, Theme, CardActionArea, Box,
-} from '@mui/material'
-import { useNavigate, useLocation } from 'react-router-dom'
+import Box from '@mui/material/Box'
+import CardActionArea from '@mui/material/CardActionArea'
+import { useNavigate } from 'react-router-dom'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFileText } from '../../hooks/fs-hooks'
-import useLoading from '../../contexts/LoadingContext'
 
 const defaultImg = '/static/images/card.jpg'
 export default function ArticleCard({ object }:{
@@ -21,19 +19,29 @@ export default function ArticleCard({ object }:{
   const navigate = useNavigate()
   const { t } = useTranslation()
 
+  const [error, setError] = React.useState(false)
+
   const onOpen = useCallback(() => {
-    navigate(`/article-viewer/${object.name}/index.knbe`)
+    navigate(`/article-viewer/${object.name}`)
   }, [navigate, object.name])
 
-  const { text, loading } = useFileText(`${object.name}/index.knbe`)
+  const { text, loading } = useFileText(`${object.name}`)
 
   const { dataUrl, title, summary } = React.useMemo(() => {
-    if (!loading) {
-      const d = JSON.parse(text)
-      return d as {
-        dataUrl: string
-        title:string
-        summary: string
+    if (!loading || error) {
+      try {
+        const d = JSON.parse(text)
+        return d as {
+          dataUrl: string
+          title:string
+          summary: string
+        }
+      } catch (e) {
+        return {
+          dataUrl: '',
+          title: '',
+          summary: '',
+        }
       }
     }
     return {
@@ -41,7 +49,7 @@ export default function ArticleCard({ object }:{
       title: '',
       summary: '',
     }
-  }, [text, loading])
+  }, [loading, error, text])
 
   return (
     <Card>

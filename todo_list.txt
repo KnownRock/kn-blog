@@ -48,8 +48,6 @@
 
 + add a desktop to manager all apps
 
-* article banner upload img directly to dataurl
-
 * add cross bucket file and folder copy function
 
 + add a upload process bar
@@ -70,5 +68,67 @@
 ? cors download not work? only jump?
 
 
-* fix file selector
-*** resolve url directly
+
+
+
+
+** add a markdown editor
+
+
+** light knbe reader
+
+
+** fix html drop in
+
+? make a dialog to preview blog
+
++ convert block to a markdown block?
+
++ pure markdown wysiwyg editor?
+
+
+* add url file adder
+
+
+* monaco editor intents setting
+
++ move all style to theme
+* solve monaco editor input loss, add a save button ?
+
+
++ add a config code block , can render code from input,and generate code can copy.
+
+** move login context to the top, and handle log in logic
+
+
+** solve router in relative path
+
+* add upload loading panel 
+
+*** mod useLoading to return a function to show the loading panel
+
+? resolve url directly
+** file list viewer
+*** fix file selector
+
+
+? block change use block text not selection text or add a new block?
+
+? add a blog link file 
+
+* add a img title
+
+* move blog part to a blog app, and load it in home page by .env file config
+
+
+* a s3 version key expired system, when login, upload a key to store random key in random url,
+  then encrypt the config with key.
+  or using a third party openid provider to login?
+
+
++ using OpenResty proxy react application which is hold by a s3 bucket.
+  generate proxy by react static files. To make router work.
+
++ add a auto-size picture uploader
+
+*** solve dependencies problem
