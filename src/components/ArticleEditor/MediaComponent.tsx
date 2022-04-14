@@ -210,11 +210,11 @@ function Code({
         onBlur={() => {
           // FIXME: direct save causes problems that causes the editor to lose changes
           setTempReadOnly(false)
-          setTimeout(() => {
-            if (draftEditor.current) {
-              draftEditor.current.focus()
-            }
-          }, 0)
+          // setTimeout(() => {
+          //   if (draftEditor.current) {
+          //     draftEditor.current.focus()
+          //   }
+          // }, 0)
         }}
         width="100%"
         ref={container}
