@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react'
+import { useContext, useMemo, useState } from 'react'
 import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -11,6 +11,7 @@ import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
 import pathUtils from 'path'
 import mime from 'mime'
+import MonacoEditor from '@monaco-editor/react'
 import { getFileAsDataUrl } from '../utils/fs'
 import InfoContext from '../contexts/InfoContext'
 import FolderSelector from '../views/Files/FolderSelector'
@@ -284,6 +285,7 @@ export function useSettingFileTypeAndName() {
 
   return { settingFileTypeAndName }
 }
+
 const languages = [
   'abap',
   'aes',
@@ -374,47 +376,104 @@ const languages = [
   'yaml',
 ]
 
+function CodeSetting({
+  parLanguage, parCode, type, onChange,
+}:{
+  parLanguage: string,
+  parCode: string,
+  type: 'code' | 'md-block',
+  onChange: ({ language, code }:{
+    language: string,
+    code: string,
+  }) => void,
+}) {
+  const [language, setLanguage] = useState(parLanguage)
+  const [code, setCode] = useState(parCode)
+  const { t } = useTranslation()
+
+  return (
+    <Box>
+      {(type === 'code') && (
+      <FormControl sx={{ m: 1, width: '100%' }}>
+        <InputLabel id="demo-multiple-name-label">{t('Programming language')}</InputLabel>
+        <Select
+          fullWidth
+          variant="standard"
+          labelId="demo-multiple-name-label"
+          id="demo-multiple-name"
+          value={language}
+          onChange={(e) => {
+            setLanguage(e.target.value as string)
+            onChange({
+              language: e.target.value as string,
+              code,
+            })
+          }}
+        >
+          {languages.map((lang) => (
+            <MenuItem
+              key={lang}
+              value={lang}
+            >
+              {lang}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      )}
+      <MonacoEditor
+        height={400}
+        language={language}
+        value={code}
+        onChange={
+        (newCode) => {
+          setCode(newCode ?? '')
+          onChange({
+            language,
+            code: newCode ?? '',
+          })
+        }
+      }
+      />
+    </Box>
+  )
+}
+
 export function useSettingCodeLanguage() {
   const { info } = useContext(InfoContext)
   const { t } = useTranslation()
 
   async function settingCodeLanguage({
     language,
-  }:{ language:string }): Promise<{
+    code,
+    type,
+  }:{
+    language:string,
+    code:string,
+    type: 'code' | 'md-block',
+  }): Promise<{
       language:string,
+      code:string,
     }> {
     let newLanguage = language
+    let newCode = code
 
     return info({
-      title: t('Setting code language'),
+      title: t('Setting code'),
       component: (
-        <Box>
-          <FormControl sx={{ m: 1, width: '100%' }}>
-            <InputLabel id="demo-multiple-name-label">{t('Programming language')}</InputLabel>
-            <Select
-              fullWidth
-              variant="standard"
-              labelId="demo-multiple-name-label"
-              id="demo-multiple-name"
-              defaultValue={newLanguage}
-              onChange={(e) => {
-                newLanguage = e.target.value as string
-              }}
-            >
-              {languages.map((lang) => (
-                <MenuItem
-                  key={lang}
-                  value={lang}
-                >
-                  {lang}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+        <CodeSetting
+          parLanguage={newLanguage}
+          parCode={newCode}
+          type={type}
+          onChange={({ language: argLanguage, code: argCode }) => {
+            newLanguage = argLanguage
+            newCode = argCode
+          }}
+        />
       ),
     }).then(() => ({
       language: newLanguage,
+      code: newCode,
     }))
   }
 

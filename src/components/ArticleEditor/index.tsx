@@ -50,10 +50,24 @@ function ArticleEditor({
   const { t } = useTranslation()
   const [tempReadOnly, setTempReadOnly] = useState(false)
   const editor = useRef<Editor>(null)
+
   const [state, setState] = useState({
     editorState:
     EditorState.createEmpty(decorator),
   })
+  useEffect(() => {
+    console.log('useEffect')
+  }, [setState])
+
+  const stateRef = useRef(state)
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  useEffect(() => {
+    console.log('33')
+  }, [stateRef])
+
   const editorContainer = useRef<HTMLDivElement>(null)
   // const selectionChangeTimer = useRef<NodeJS.Timeout>(null)
   const [
@@ -363,12 +377,12 @@ function ArticleEditor({
   })
 
   const editorContext = useMemo(() => ({
-    state,
     setState,
     readOnly,
     setTempReadOnly,
     editor,
-  }), [state, readOnly, editor])
+    stateRef,
+  }), [stateRef, readOnly, editor])
 
   const dropProps = useMemo(() => getRootProps(), [getRootProps])
 
@@ -436,6 +450,10 @@ function ArticleEditor({
     icon: <AttachFileIcon />,
     onClick: onLinkClick,
   }]]
+
+  useEffect(() => {
+    console.log('useEffect')
+  }, [])
 
   return (
     <Box

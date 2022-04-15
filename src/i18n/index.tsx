@@ -109,6 +109,7 @@ i18n
           'Setting resource path': '设置资源路径',
           'Setting export path': '设置导出路径',
           Clipboard: '剪贴板',
+          'Setting code': '设置代码',
 
         },
       },
