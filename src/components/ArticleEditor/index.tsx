@@ -4,7 +4,6 @@ import {
 } from 'react'
 import {
   AtomicBlockUtils,
-  ContentBlock,
   ContentState,
   convertFromRaw,
   convertToRaw,
@@ -14,7 +13,6 @@ import {
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
 
 import { useDropzone } from 'react-dropzone'
 import FormatBold from '@mui/icons-material/FormatBold'
@@ -28,40 +26,15 @@ import './index.css'
 import { useTranslation } from 'react-i18next'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import mime from 'mime'
-import TextSnippetIcon from '@mui/icons-material/TextSnippet'
 import ShortTextIcon from '@mui/icons-material/ShortText'
-import { useSelectFile } from '../../hooks/use-selector'
+import FileOpenIcon from '@mui/icons-material/FileOpen'
+import { useSelectFile, useSettingLinkUrl } from '../../hooks/use-selector'
 import { convertBlobsToDataUrlWithFileName, convertFilesToDataUrlWithFileName } from '../../utils/file-tools'
-import MediaComponent from './MediaComponent'
 import EditorContext from '../../contexts/EditorContext'
-
-function HeaderIcon({
-  str,
-}:{
-  str:string
-}) {
-  return (
-    <Typography
-      variant="h6"
-      className="knBlogHeader"
-    >
-      {str}
-    </Typography>
-  )
-}
-function myBlockRenderer(contentBlock: ContentBlock) {
-  const type = contentBlock.getType()
-  if (type === 'atomic') {
-    return {
-      component: MediaComponent,
-      editable: false,
-      props: {
-        foo: 'bar',
-      },
-    }
-  }
-  return undefined
-}
+import decorator from './decorator'
+import customBlockRenderer from './customBlockRenderer'
+import MenuHeaderIcon from './MenuHeaderIcon'
+import customBlockStyleFn from './customBlockStyleFn'
 
 function ArticleEditor({
   contentState,
@@ -73,13 +46,28 @@ function ArticleEditor({
   readOnly?: boolean;
 }) {
   const { getFileAsDataUrlWithFileName } = useSelectFile()
+  const { settingLinkUrl } = useSettingLinkUrl()
   const { t } = useTranslation()
   const [tempReadOnly, setTempReadOnly] = useState(false)
   const editor = useRef<Editor>(null)
+
   const [state, setState] = useState({
     editorState:
-    EditorState.createEmpty(),
+    EditorState.createEmpty(decorator),
   })
+  useEffect(() => {
+    console.log('useEffect')
+  }, [setState])
+
+  const stateRef = useRef(state)
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  useEffect(() => {
+    console.log('33')
+  }, [stateRef])
+
   const editorContainer = useRef<HTMLDivElement>(null)
   // const selectionChangeTimer = useRef<NodeJS.Timeout>(null)
   const [
@@ -96,29 +84,11 @@ function ArticleEditor({
     height: 0,
   })
 
-  // // https://github.com/facebook/draft-js/issues/121
-  // function onTab(e : any) {
-  //   e.preventDefault()
-
-  //   const currentState = state.editorState
-  //   const newContentState = Modifier.replaceText(
-  //     currentState.getCurrentContent(),
-  //     currentState.getSelection(),
-  //     '  ',
-  //   )
-
-  //   setState({
-  //     editorState: EditorState.push(currentState, newContentState, 'insert-characters'),
-  //   })
-  // }
-
   const [floatVisible, setFloatVisible] = useState(false)
 
   const onWheel = useCallback(
     () => {
-      // if (e.deltaY > 0) {
       setFloatVisible(false)
-      // }
     },
     [],
   )
@@ -134,6 +104,7 @@ function ArticleEditor({
     if (contentState) {
       newState = EditorState.createWithContent(
         new ContentState(convertFromRaw(contentState)),
+        decorator,
       )
     }
 
@@ -304,23 +275,6 @@ function ArticleEditor({
       ))
   }
 
-  // const onDrop = async (acceptedFiles:File[]) => {
-  //   convertFilesToDataUrlWithFileName(acceptedFiles)
-  //     .then((files) => {
-  //       for (let i = 0; i < files.length; i += 1) {
-  //         const file = files[i]
-  //         const { dataUrl, fileName } = file
-  //         const contentType = mime.getType(fileName)
-  //         const blockType = contentType?.startsWith('image/') ? 'image' : 'file'
-  //         addCustomizedBlock({
-  //           blockType,
-  //           dataUrl,
-  //           fileName,
-  //         })
-  //       }
-  //     })
-  // }
-
   const onBoldClick = () => {
     onChange(RichUtils.toggleInlineStyle(state.editorState, 'BOLD'))
     // onChange(RichUtils.toggleBlockType(state.editorState, 'header-one'))
@@ -353,6 +307,29 @@ function ArticleEditor({
 
   const onBlockquoteClick = () => {
     onChange(RichUtils.toggleBlockType(state.editorState, 'blockquote'))
+  }
+
+  const onLinkClick = async () => {
+    const { url } = await settingLinkUrl({ url: '' })
+
+    // // https://codesandbox.io/s/nz8fj?file=/src/index.js:2695-2717
+    const contentStateWithEntity = state.editorState // from STATE
+      .getCurrentContent()
+      .createEntity(
+        'LINK',
+        'MUTABLE',
+        { url },
+      )
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey()
+
+    const nextEditorState = EditorState.set(
+      state.editorState,
+      { currentContent: contentStateWithEntity },
+    )
+
+    onChange(
+      RichUtils.toggleLink(state.editorState, nextEditorState.getSelection(), entityKey),
+    )
   }
 
   const onCodeClick = () => {
@@ -394,58 +371,44 @@ function ArticleEditor({
     })
   }
 
-  const myBlockStyleFn = (contentBlock: ContentBlock):string => {
-    const type = contentBlock.getType()
-    if (type === 'blockquote') {
-      return 'knBlogBlockquote'
-    }
-    if (type === 'unstyled') {
-      return 'knBlogUnstyled'
-    }
-    if (type === 'code-block') {
-      return 'knBlogCodeBlock'
-    }
-    return type
-  }
-
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     noClick: true,
   })
 
   const editorContext = useMemo(() => ({
-    state,
     setState,
     readOnly,
     setTempReadOnly,
     editor,
-  }), [state, readOnly, editor])
+    stateRef,
+  }), [stateRef, readOnly, editor])
 
   const dropProps = useMemo(() => getRootProps(), [getRootProps])
 
   const menuItems = [[{
     id: 'h1',
-    icon: <HeaderIcon str="H1" />,
+    icon: <MenuHeaderIcon str="H1" />,
     onClick: onHeaderOneClick,
   }, {
     id: 'h2',
-    icon: <HeaderIcon str="H2" />,
+    icon: <MenuHeaderIcon str="H2" />,
     onClick: onHeaderTwoClick,
   }, {
     id: 'h3',
-    icon: <HeaderIcon str="H3" />,
+    icon: <MenuHeaderIcon str="H3" />,
     onClick: onHeaderThreeClick,
   }, {
     id: 'h4',
-    icon: <HeaderIcon str="H4" />,
+    icon: <MenuHeaderIcon str="H4" />,
     onClick: onHeaderFourClick,
   }, {
     id: 'h5',
-    icon: <HeaderIcon str="H5" />,
+    icon: <MenuHeaderIcon str="H5" />,
     onClick: onHeaderFiveClick,
   }, {
     id: 'h6',
-    icon: <HeaderIcon str="H6" />,
+    icon: <MenuHeaderIcon str="H6" />,
     onClick: onHeaderSixClick,
   },
   {
@@ -470,7 +433,7 @@ function ArticleEditor({
     onClick: onCodeClick,
   }, {
     id: 'md-block',
-    icon: <TextSnippetIcon />,
+    icon: <MenuHeaderIcon str="md" />,
     onClick: onMdBlockClick,
   }, {
     id: 'img',
@@ -479,9 +442,18 @@ function ArticleEditor({
   },
   {
     id: 'file',
-    icon: <AttachFileIcon />,
+    icon: <FileOpenIcon />,
     onClick: onFileClick,
+  },
+  {
+    id: 'link',
+    icon: <AttachFileIcon />,
+    onClick: onLinkClick,
   }]]
+
+  useEffect(() => {
+    console.log('useEffect')
+  }, [])
 
   return (
     <Box
@@ -555,7 +527,7 @@ function ArticleEditor({
         sx={{
           paddingTop: 1,
 
-          ...readOnly ? {} : { backgroundColor: 'rgba(255,255,0,0.1)' },
+          ...readOnly ? {} : { backgroundColor: 'rgba(255,255,0,0.05)' },
         }}
         onDrop={dropProps.onDrop}
       >
@@ -570,16 +542,15 @@ function ArticleEditor({
         <EditorContext.Provider value={editorContext}>
           <Editor
             ref={editor}
-            blockRendererFn={myBlockRenderer}
+            blockRendererFn={customBlockRenderer}
             readOnly={readOnly || tempReadOnly}
             onBlur={onBlur}
             placeholder={t('Write something...')}
             editorState={state.editorState}
             handleKeyCommand={handleKeyCommand}
             handlePastedFiles={handlePastedFiles}
-          // handleDroppedFiles={handleDroppedFiles}
             onChange={onChange}
-            blockStyleFn={myBlockStyleFn}
+            blockStyleFn={customBlockStyleFn}
           />
         </EditorContext.Provider>
       </Box>

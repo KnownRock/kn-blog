@@ -51,7 +51,7 @@ function Home() {
           paddingTop: 0,
         }}
       >
-        {objects.sort((a, b) => a.name.localeCompare(a.name)).map((object) => (
+        {objects.sort((a, b) => -a.name.localeCompare(b.name)).map((object) => (
           <Box key={object.name} sx={{ paddingTop: 3 }}>
             <ArticleCard object={object} />
           </Box>

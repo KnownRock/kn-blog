@@ -1,6 +1,7 @@
 import Minio from 'minio'
 import mime from 'mime'
 
+import hash from 'crypto-js/sha256'
 // in order use minio in vite, bundle by browserify
 // please download from https://github.com/KnownRock/kn-blog-minio-lib
 import 'kn-blog-minio-sdk'
@@ -17,13 +18,26 @@ const defaultConfig = {
   bucket: import.meta.env.VITE_APP_S3_BUCKET, // 'private',
 }
 
-let rootBucket = defaultConfig.bucket
-let rootMinioClient:Minio.Client | undefined
-let rootMinioConfig:Minio.ClientOptions | undefined
+type MinioConfig = typeof defaultConfig
+
+// let rootBucket = defaultConfig.bucket
+let rootMinioConfig = defaultConfig
+
+const clientCache:{
+  [key: string]: Minio.Client
+} = {}
+
+function getClient(config: Minio.ClientOptions) {
+  const key = hash(`${config.endPoint}:${config.useSSL}:${config.port}:${config.accessKey}:${config.secretKey}`).toString()
+  if (clientCache[key]) {
+    return clientCache[key]
+  }
+  clientCache[key] = new minio.Client(config)
+  return clientCache[key]
+}
 
 export async function setConfig(config:typeof defaultConfig) {
-  rootMinioClient = new minio.Client(config)
-  rootBucket = config.bucket
+  // rootBucket = config.bucket
   rootMinioConfig = config
 }
 
@@ -63,30 +77,37 @@ async function getFileRaw(bucket:string, path:string, minioClient:Minio.Client) 
   })
 }
 
-async function getFileAsTextRaw(
-  bucket:string,
+const rawTextCache :{
+  [key: string]: string
+} = {}
+async function getFileAsTextRawWithCache(
   path:string,
+  bucket:string,
   minioClient:Minio.Client,
+  rawPath:string,
 ): Promise<string> {
+  if (rawTextCache[rawPath]) {
+    return rawTextCache[rawPath]
+  }
+
   const object = await getFileRaw(bucket, path, minioClient)
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => {
-      resolve(reader.result as string)
+      const text = reader.result as string
+      rawTextCache[rawPath] = text
+
+      resolve(text)
     }
     reader.onerror = reject
     reader.readAsText(object)
   })
 }
 
-export async function resolvePath(path: string, fsPath = '', prefixPath = '', bucket = rootBucket, parMinioClient: Minio.Client | undefined = undefined): Promise<ResolvedPath> {
-  let minioClient = parMinioClient
-  if (minioClient === undefined) {
-    if (rootMinioClient === undefined) {
-      rootMinioClient = new minio.Client(defaultConfig)
-    }
-    minioClient = rootMinioClient
-  }
+export async function resolvePath(path: string, fsPath = '', prefixPath = '', parMinioConfig: MinioConfig | undefined = undefined, rawPath = path): Promise<ResolvedPath> {
+  const config = parMinioConfig || rootMinioConfig
+  const minioClient = getClient(config)
+  const { bucket } = config
 
   const paths = path.split('/')
   let linkFileIndex = -1
@@ -102,16 +123,17 @@ export async function resolvePath(path: string, fsPath = '', prefixPath = '', bu
   // TODO: recursive link file find
   if (linkFileIndex !== -1 && linkFileIndex !== paths.length - 1) {
     const linkFilePath = paths.slice(0, linkFileIndex + 1).join('/')
-    const linkFileText = await getFileAsTextRaw(bucket, linkFilePath, minioClient)
+    const linkFileText = await getFileAsTextRawWithCache(linkFilePath, bucket, minioClient, rawPath)
     const linkObject = JSON.parse(linkFileText)
     const restPath = paths.slice(linkFileIndex + 1).join('/')
 
-    const newClient = new minio.Client({
+    const newConfig = ({
       ...rootMinioConfig,
       ...linkObject,
     })
+
     const additionalPath:string = linkObject.path ?? ''
-    return resolvePath(`${additionalPath}${restPath}`, `${fsPath + linkFilePath}/`, additionalPath, linkObject.bucket, newClient)
+    return resolvePath(`${additionalPath}${restPath}`, `${fsPath + linkFilePath}/`, additionalPath, newConfig, rawPath)
   }
   return {
     bucket,
@@ -209,15 +231,7 @@ export async function saveTextFile(
 }
 
 export async function getMinioClient() {
-  let minioClient
-  if (minioClient === undefined) {
-    if (rootMinioClient === undefined) {
-      rootMinioClient = new minio.Client(defaultConfig)
-    }
-    minioClient = rootMinioClient
-  }
-
-  return minioClient
+  return getClient(rootMinioConfig)
 }
 
 // TODO: move it page

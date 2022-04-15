@@ -87,6 +87,7 @@ export default function ArticleCard({ object }:{
           component="div"
           sx={{
             height: 40,
+
           }}
         >
           {title}
@@ -95,7 +96,8 @@ export default function ArticleCard({ object }:{
           variant="body2"
           color="text.secondary"
           sx={{
-            height: 40,
+            height: 60,
+            overflow: 'hidden',
           }}
         >
           {summary}
