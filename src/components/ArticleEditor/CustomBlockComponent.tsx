@@ -132,14 +132,15 @@ function Code({
   const { t } = useTranslation()
   const { editor: draftEditor } = useContext(EditorContext)
   const { notify } = useContext(InfoContext)
-  const handleSave = (e: any) => {
+  const handleSave = useCallback((e: any) => {
     const code = editor.getValue()
     setTempReadOnly(false)
     setTimeout(() => {
       handleCodeChanged(code)
       notify(t('Code saved') as string)
     }, 0)
-  }
+  }, [editor, handleCodeChanged, notify, setTempReadOnly, t])
+
   useEffect(() => {
     if (editor && container.current) {
       const updateHeight = () => {
@@ -148,6 +149,71 @@ function Code({
       editor.onDidContentSizeChange(updateHeight)
     }
   }, [editor])
+
+  const editorNode = useMemo(() => {
+    console.log('editorNode')
+    return (
+      <BlockTool handleSave={handleSave} handleSetting={data.type === 'code' ? handleCodeSetting : undefined} readOnly={readOnly} handleRemove={handleRemove}>
+        <Typography
+          sx={{
+            userSelect: 'none',
+          }}
+          variant="caption"
+          color="textSecondary"
+        />
+        <Box
+          onKeyDown={(e) => e.stopPropagation()}
+          onKeyUp={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          onFocus={() => {
+            setTempReadOnly(true)
+          }}
+          onBlur={() => {
+            // FIXME: direct save causes problems that causes the editor to lose changes
+            setTempReadOnly(false)
+            // setTimeout(() => {
+            //   if (draftEditor.current) {
+            //     draftEditor.current.focus()
+            //   }
+            // }, 0)
+          }}
+          width="100%"
+          ref={container}
+        >
+          <MonacoEditorCom
+            onMount={(parEditor) => {
+              setEditor(parEditor)
+            }}
+            options={{
+              readOnly,
+              fontSize: 16,
+              lineNumbers: 'off',
+              folding: false,
+            }}
+            defaultValue={data.code}
+            onChange={(v) => {
+              handleCodeChanged(v ?? '')
+            }}
+    // theme="vs-dark"
+            language={data.language ?? 'text'}
+            height={height}
+          />
+        </Box>
+        <Typography
+          sx={{
+            userSelect: 'none',
+          }}
+          variant="caption"
+          color="textSecondary"
+        >
+          {data.type === 'code' ? `${t('Code')}[${data.language}]` : t('Markdown Block')}
+        </Typography>
+      </BlockTool>
+    )
+  }, [
+    handleSave, data.type, data.code, data.language,
+    handleCodeSetting, readOnly, handleRemove, height,
+    t, setTempReadOnly, handleCodeChanged])
 
   if (readOnly) {
     if (data.type === 'code') {
@@ -190,62 +256,7 @@ function Code({
   }
 
   return (
-    <BlockTool handleSave={handleSave} handleSetting={data.type === 'code' ? handleCodeSetting : undefined} readOnly={readOnly} handleRemove={handleRemove}>
-      <Typography
-        sx={{
-          userSelect: 'none',
-        }}
-        variant="caption"
-        color="textSecondary"
-      />
-      <Box
-        onKeyDown={(e) => e.stopPropagation()}
-        onKeyUp={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        onFocus={() => {
-          setTempReadOnly(true)
-        }}
-        onBlur={() => {
-          // FIXME: direct save causes problems that causes the editor to lose changes
-          setTempReadOnly(false)
-          // setTimeout(() => {
-          //   if (draftEditor.current) {
-          //     draftEditor.current.focus()
-          //   }
-          // }, 0)
-        }}
-        width="100%"
-        ref={container}
-      >
-        <MonacoEditorCom
-          onMount={(parEditor) => {
-            setEditor(parEditor)
-          }}
-          options={{
-            readOnly,
-            fontSize: 16,
-            lineNumbers: 'off',
-            folding: false,
-          }}
-          defaultValue={data.code}
-          onChange={(v) => {
-            handleCodeChanged(v ?? '')
-          }}
-        // theme="vs-dark"
-          language={data.language ?? 'text'}
-          height={height}
-        />
-      </Box>
-      <Typography
-        sx={{
-          userSelect: 'none',
-        }}
-        variant="caption"
-        color="textSecondary"
-      >
-        {data.type === 'code' ? `${t('Code')}[${data.language}]` : t('Markdown Block')}
-      </Typography>
-    </BlockTool>
+    editorNode
 
   )
 }
