@@ -7,7 +7,9 @@ import { useTranslation } from 'react-i18next'
 // import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { useNavigate } from 'react-router-dom'
 import InfoContext from '../contexts/InfoContext'
-import { testConfig, setConfig, getFileAsText } from '../utils/fs'
+import {
+  testConfig, setConfig, getFileAsText, assignConfig,
+} from '../utils/fs'
 
 // async function getVisitId() {
 //   return FingerprintJS.load()
@@ -212,18 +214,15 @@ export function useShowLogin() {
               return false
             }
 
-            // const key = await getVisitId()
+            const config = await assignConfig(inputConfig)
 
-            // const encryptedConfig = CryptoJS.AES
-            //   .encrypt(JSON.stringify(inputConfig), key).toString()
-
-            // localStorage.setItem('.config', encryptedConfig)
-
-            localStorage.setItem('.config', JSON.stringify(inputConfig))
+            localStorage.setItem('.config', JSON.stringify({
+              ...inputConfig,
+              ...config,
+            }))
 
             return true
           },
-          // content: 'No config file found',
           component: (
             <Box>
               <Form

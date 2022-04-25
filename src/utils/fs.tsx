@@ -5,8 +5,29 @@ import hash from 'crypto-js/sha256'
 // in order use minio in vite, bundle by browserify
 // please download from https://github.com/KnownRock/kn-blog-minio-lib
 import 'kn-blog-minio-sdk'
+// import './minio'
 
-declare const minio: typeof Minio
+// type AssumeRoleProvider = (
+//   params: typeof defaultConfig & { stsEndpoint: string },
+// ) => {
+//   getCredentials() => Promise<{
+//     accessKey: string,
+//     secretKey: string,
+//     sessionToken: string,
+//   }>
+// }
+
+// type AssumeRoleProvider = {
+
+// }
+
+declare const MinIO: typeof Minio & {
+  Buffer: BufferConstructor,
+  AssumeRoleProvider:any
+}
+const minio = MinIO
+const { Buffer } = MinIO
+// declare const minio: typeof Minio
 
 const defaultConfig = {
   endPoint: import.meta.env.VITE_APP_S3_ENDPOINT, // '127.0.0.1',
@@ -58,6 +79,17 @@ export async function testConfig(config:typeof defaultConfig) {
       resolve(false)
     })
   }
+}
+
+export async function assignConfig(config:typeof defaultConfig) {
+  const assumeRoleProvider = new minio.AssumeRoleProvider({
+    ...config,
+    stsEndpoint: `${defaultConfig.useSSL ? 'https://' : 'http://'}${defaultConfig.endPoint}:${defaultConfig.port}`, // 'https://s3.sukiyo.top',
+    region: 'us-east-1',
+    durationSeconds: 60 * 60 * 24 * 7,
+  })
+  const tempCred = await assumeRoleProvider.getCredentials()
+  return tempCred
 }
 
 async function getFileRaw(bucket:string, path:string, minioClient:Minio.Client) {
