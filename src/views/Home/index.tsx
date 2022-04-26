@@ -1,73 +1,42 @@
-import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
 import { useEffect } from 'react'
-import ArticleCard from '../../components/ArticleCard'
-import TopBar from '../../components/TopBar'
-import useLoading from '../../contexts/LoadingContext'
-import { useDir } from '../../hooks/fs-hooks'
+import { useNavigate } from 'react-router-dom'
 import { useAutoLogin } from '../../hooks/user-hooks'
 
 function Home() {
   const { loading: loadingForLogin, env } = useAutoLogin()
-  const { loading, error, objects = [] } = useDir('/blogs/home')
-  useLoading(loading)
-
-  // useEffect(() => {
-  //   if (!loadingForLogin && env.title) {
-  //     document.title = env.title
-  //   } else {
-  //     document.title = import.meta.env.VITE_APP_TITLE
-  //   }
-  // }, [env.title, loadingForLogin])
+  const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = ((!loadingForLogin
-      ? env?.title
-      : undefined)
-      ?? import.meta.env.VITE_APP_TITLE)
-      || document.title
-  }, [loadingForLogin, env])
+    if (!loadingForLogin) {
+      if (env.home) {
+        navigate(env.home)
+      } else {
+        // navigate('/text-viewer/.env')
+      }
+    }
+  }, [loadingForLogin, env, navigate])
 
-  return (
-    <Box sx={{ }}>
-      <TopBar title={!loadingForLogin ? env?.title : undefined} />
-      <Container
-        maxWidth="md"
-        sx={{
-          paddingLeft: {
-            xs: 0,
-            sm: 0,
-            md: 0,
-            lg: 0,
-            xl: 0,
-          },
-          paddingRight: {
-            xs: 0,
-            sm: 0,
-            md: 0,
-            lg: 0,
-            xl: 0,
-          },
-          paddingTop: 0,
-        }}
-      >
-        {objects.sort((a, b) => -a.name.localeCompare(b.name)).map((object) => (
-          <Box key={object.name} sx={{ paddingTop: 3 }}>
-            <ArticleCard object={object} />
-          </Box>
-        ))}
-      </Container>
+  return null
 
-      {/* <Container maxWidth="md">
-        <Box sx={{ paddingTop: 3 }}>
-          <ArticleCard />
-        </Box>
-        <Box sx={{ paddingTop: 3 }}>
-          <ArticleCard />
-        </Box>
-      </Container> */}
-    </Box>
-  )
+  // return (
+  //   <div style={{
+  //     width: '100wh',
+  //     height: '100vh',
+  //     overflow: 'hidden',
+  //   }}
+  //   >
+  //     <iframe
+  //       style={{
+  //         width: '100%',
+  //         height: '100%',
+  //         border: 'none',
+  //       }}
+  //       src="/blog/public.s3/blogs/home"
+  //       title="home"
+  //     />
+  //   </div>
+
+  // )
 }
 
 export default Home

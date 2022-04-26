@@ -6,17 +6,19 @@ import {
 import process from 'process'
 import Box from '@mui/material/Box'
 import React from 'react'
-import Article from './views/Article'
-import Home from './views/Home'
-// import Files from './views/Files'
-
 import Info from './components/Info'
+import TopBar from './components/TopBar'
 
+const Home = React.lazy(() => import('./views/Home'))
+const Blog = React.lazy(() => import('./views/Blog'))
 const ArticleViewer = React.lazy(() => import('./views/Viewers/ArticleViewer'))
 const Files = React.lazy(() => import('./views/Files'))
+
 const VideoViewer = React.lazy(() => import('./views/Viewers/VideoViewer'))
 const TextViewer = React.lazy(() => import('./views/Viewers/TextViewer'))
 const ImageViewer = React.lazy(() => import('./views/Viewers/ImageViewer'))
+
+const AppDev = React.lazy(() => import('./views/Viewers/AppDev'))
 
 window.process = process
 document.title = import.meta.env.VITE_APP_TITLE
@@ -27,7 +29,7 @@ function MySuspense({
   children: JSX.Element,
 }) {
   return (
-    <React.Suspense fallback={<>...</>}>
+    <React.Suspense fallback={<TopBar title="" />}>
       {children}
     </React.Suspense>
   )
@@ -37,9 +39,14 @@ function App() {
   return (
     <Info>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/articles/:id" element={<Article />} />
-
+        <Route
+          path="/"
+          element={(
+            <MySuspense>
+              <Home />
+            </MySuspense>
+          )}
+        />
         <Route
           path="/files/*"
           element={(
@@ -49,10 +56,18 @@ function App() {
           )}
         />
         <Route
-          path="/a/*"
+          path="/blog/*"
           element={(
             <MySuspense>
-              <ImageViewer />
+              <Blog />
+            </MySuspense>
+          )}
+        />
+        <Route
+          path="/app-dev/*"
+          element={(
+            <MySuspense>
+              <AppDev />
             </MySuspense>
           )}
         />
@@ -89,9 +104,9 @@ function App() {
           )}
         />
 
-        <Route path="*" element={<Box />} />
+        {/* <Route path="*" element={<Box />} /> */}
 
-        <Route path="me" element={3} />
+        {/* <Route path="me" element={3} /> */}
 
       </Routes>
     </Info>
