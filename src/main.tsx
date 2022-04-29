@@ -5,6 +5,12 @@ import App from './App'
 import Theme from './themes/Main'
 import './i18n/index'
 
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/service-worker.js')
+//   })
+// }
+
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>

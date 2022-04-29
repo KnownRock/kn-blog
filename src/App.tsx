@@ -17,6 +17,7 @@ const Files = React.lazy(() => import('./views/Files'))
 const VideoViewer = React.lazy(() => import('./views/Viewers/VideoViewer'))
 const TextViewer = React.lazy(() => import('./views/Viewers/TextViewer'))
 const ImageViewer = React.lazy(() => import('./views/Viewers/ImageViewer'))
+const Desktop = React.lazy(() => import('./views/Desktop'))
 
 const AppDev = React.lazy(() => import('./views/Viewers/AppDev'))
 
@@ -35,10 +36,14 @@ function MySuspense({
   )
 }
 
-function App() {
+function App({
+  location,
+}:{
+  location:string
+}) {
   return (
     <Info>
-      <Routes>
+      <Routes location={location}>
         <Route
           path="/"
           element={(
@@ -103,7 +108,14 @@ function App() {
             </MySuspense>
           )}
         />
-
+        <Route
+          path="/desktop/*"
+          element={(
+            <MySuspense>
+              <Desktop />
+            </MySuspense>
+          )}
+        />
         {/* <Route path="*" element={<Box />} /> */}
 
         {/* <Route path="me" element={3} /> */}

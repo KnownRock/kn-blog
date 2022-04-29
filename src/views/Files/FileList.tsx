@@ -66,9 +66,9 @@ export default function FileList({ objects }: { objects: Awaited<ReturnType<type
         <Box key={group.title}>
           <Typography
             sx={{
-              paddingTop: 2,
+              padding: 2,
             }}
-            variant="subtitle1"
+            variant="subtitle2"
             component="h6"
           >
             {group.title}
